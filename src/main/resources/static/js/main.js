@@ -2,6 +2,25 @@
 // Handles AJAX interactions, like toggles, auto-dismiss alerts, and UI polish
 
 document.addEventListener('DOMContentLoaded', function() {
+    // Theme toggle (light/dark) with persistence
+    const themeButtons = document.querySelectorAll('[data-theme-toggle]');
+    const setTheme = (theme) => {
+        document.documentElement.setAttribute('data-theme', theme);
+        localStorage.setItem('theme', theme);
+        themeButtons.forEach(btn => {
+            btn.textContent = theme === 'dark' ? 'Light' : 'Dark';
+            btn.setAttribute('aria-label', theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode');
+        });
+    };
+    const activeTheme = document.documentElement.getAttribute('data-theme') || 'light';
+    setTheme(activeTheme);
+    themeButtons.forEach(btn => {
+        btn.addEventListener('click', function () {
+            const current = document.documentElement.getAttribute('data-theme') || 'light';
+            setTheme(current === 'dark' ? 'light' : 'dark');
+        });
+    });
+
     // Auto-dismiss alerts
     document.querySelectorAll('.alert').forEach(alert => {
         setTimeout(() => {
