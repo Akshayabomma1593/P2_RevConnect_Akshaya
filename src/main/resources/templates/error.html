@@ -4,17 +4,25 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Error — RevConnect</title>
+    <title>Error - RevConnect</title>
+    <script>
+        (function () {
+            var savedTheme = localStorage.getItem("theme");
+            var prefersDark = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
+            var theme = savedTheme || (prefersDark ? "dark" : "light");
+            document.documentElement.setAttribute("data-theme", theme);
+        })();
+    </script>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link
-        href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600&family=Inter:wght@300;400;500&display=swap"
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600&family=Inter:wght@300;400;500&display=swap"
         rel="stylesheet" />
     <link th:href="@{/css/styles.css}" rel="stylesheet" />
     <script src="https://unpkg.com/lucide@latest"></script>
 </head>
 
-<body
-    style="display: flex; align-items: center; justify-content: center; min-height: 100vh; background: var(--bg-base);">
+<body style="display: flex; align-items: center; justify-content: center; min-height: 100vh; background: var(--bg-base);">
+    <button type="button" class="rc-theme-toggle rc-theme-floating" data-theme-toggle>Dark</button>
+
     <div class="card shadow-lg" style="text-align: center; max-width: 480px; padding: 4rem;">
         <div class="mb-6 flex justify-center">
             <div style="padding: 1.5rem; border-radius: 50%; background: var(--bg-soft);">
@@ -22,9 +30,7 @@
             </div>
         </div>
 
-        <h1 class="mb-2" style="font-size: 4rem; font-weight: 300; color: var(--primary-alt);"
-            th:text="${status ?: 'Error'}">500</h1>
-
+        <h1 class="mb-2" style="font-size: 4rem; font-weight: 300; color: var(--primary-alt);" th:text="${status ?: 'Error'}">500</h1>
         <h2 class="mb-6" style="font-size: 1.5rem; font-weight: 400; color: var(--text-main);"
             th:text="${error ?: 'Something went wrong'}">Internal Server Error</h2>
 
@@ -38,9 +44,11 @@
             <a th:href="@{/feed}" class="btn btn-primary">Return Home</a>
         </div>
     </div>
+
     <script>
         lucide.createIcons();
     </script>
+    <script th:src="@{/js/main.js}"></script>
 </body>
 
 </html>

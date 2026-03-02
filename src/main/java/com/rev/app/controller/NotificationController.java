@@ -31,6 +31,9 @@ public class NotificationController {
 
     @GetMapping
     public String notifications(@AuthenticationPrincipal UserDetails userDetails, Model model) {
+        if (userDetails == null) {
+            return "redirect:/login";
+        }
         User currentUser = userService.findByUsername(userDetails.getUsername());
         model.addAttribute("notifications", notificationService.getNotifications(currentUser.getId()));
         model.addAttribute("unreadCount", notificationService.getUnreadCount(currentUser.getId()));
@@ -42,12 +45,18 @@ public class NotificationController {
     @PostMapping("/read/{id}")
     public String markRead(@PathVariable Long id,
             @AuthenticationPrincipal UserDetails userDetails) {
+        if (userDetails == null) {
+            return "redirect:/login";
+        }
         notificationService.markAsRead(id);
         return "redirect:/notifications";
     }
 
     @GetMapping("/preferences")
     public String preferencesForm(@AuthenticationPrincipal UserDetails userDetails, Model model) {
+        if (userDetails == null) {
+            return "redirect:/login";
+        }
         User currentUser = userService.findByUsername(userDetails.getUsername());
         NotificationPreference prefs = preferenceRepository.findByUserId(currentUser.getId())
                 .orElseGet(() -> new NotificationPreference(currentUser));
@@ -68,6 +77,9 @@ public class NotificationController {
     public String updatePreferences(@AuthenticationPrincipal UserDetails userDetails,
             @ModelAttribute NotificationPreferenceDTO dto,
             RedirectAttributes redirectAttributes) {
+        if (userDetails == null) {
+            return "redirect:/login";
+        }
         User currentUser = userService.findByUsername(userDetails.getUsername());
         NotificationPreference prefs = preferenceRepository.findByUserId(currentUser.getId())
                 .orElseGet(() -> new NotificationPreference(currentUser));
@@ -90,6 +102,9 @@ public class NotificationController {
 
     @PostMapping("/clear")
     public String clearNotifications(@AuthenticationPrincipal UserDetails userDetails) {
+        if (userDetails == null) {
+            return "redirect:/login";
+        }
         User currentUser = userService.findByUsername(userDetails.getUsername());
         notificationService.clearAllNotifications(currentUser.getId());
         return "redirect:/notifications";
