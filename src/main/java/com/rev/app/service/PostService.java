@@ -22,12 +22,16 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.HashSet;
+import java.util.Set;
 
 @Service
 @Transactional
 public class PostService {
 
     private static final Logger logger = LogManager.getLogger(PostService.class);
+    private static final long MAX_IMAGE_BYTES = 5L * 1024 * 1024;
+    private static final Set<String> ALLOWED_IMAGE_TYPES = Set.of(
+            "image/jpeg", "image/png", "image/gif", "image/webp");
 
     private final PostRepository postRepository;
     private final NotificationService notificationService;
@@ -55,7 +59,9 @@ public class PostService {
         attachTaggedProducts(post, author.getId(), dto.getProductIds());
 
         if (image != null && !image.isEmpty()) {
-            String filename = java.util.UUID.randomUUID() + "_" + image.getOriginalFilename();
+            validateImage(image);
+            String originalName = java.nio.file.Paths.get(image.getOriginalFilename()).getFileName().toString();
+            String filename = java.util.UUID.randomUUID() + "_" + originalName;
             java.nio.file.Path rootPath = java.nio.file.Paths.get("uploads/post-images").toAbsolutePath();
             if (!java.nio.file.Files.exists(rootPath)) {
                 java.nio.file.Files.createDirectories(rootPath);
@@ -213,5 +219,15 @@ public class PostService {
             return;
         }
         post.setTaggedProducts(new HashSet<>(productRepository.findByIdInAndOwnerIdAndActiveTrue(productIds, ownerId)));
+    }
+
+    private void validateImage(org.springframework.web.multipart.MultipartFile file) {
+        if (file.getSize() > MAX_IMAGE_BYTES) {
+            throw new IllegalArgumentException("Image size must be 5MB or less.");
+        }
+        String contentType = file.getContentType();
+        if (contentType == null || !ALLOWED_IMAGE_TYPES.contains(contentType.toLowerCase())) {
+            throw new IllegalArgumentException("Only JPG, PNG, GIF, or WEBP images are allowed.");
+        }
     }
 }

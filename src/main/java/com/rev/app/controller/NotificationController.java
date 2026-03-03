@@ -49,7 +49,8 @@ public class NotificationController {
         if (userDetails == null) {
             return "redirect:/login";
         }
-        notificationService.markAsRead(id);
+        User currentUser = userService.findByUsername(userDetails.getUsername());
+        notificationService.markAsRead(id, currentUser.getId());
         return "redirect:/notifications";
     }
 
@@ -96,8 +97,13 @@ public class NotificationController {
     }
 
     @PostMapping("/delete/{id}")
-    public String deleteNotification(@PathVariable Long id) {
-        notificationService.deleteNotification(id);
+    public String deleteNotification(@PathVariable Long id,
+            @AuthenticationPrincipal UserDetails userDetails) {
+        if (userDetails == null) {
+            return "redirect:/login";
+        }
+        User currentUser = userService.findByUsername(userDetails.getUsername());
+        notificationService.deleteNotification(id, currentUser.getId());
         return "redirect:/notifications";
     }
 

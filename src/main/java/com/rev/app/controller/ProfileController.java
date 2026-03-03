@@ -122,6 +122,8 @@ public class ProfileController {
             User currentUser = userService.findByUsername(userDetails.getUsername());
             userService.uploadProfilePicture(currentUser.getId(), file, uploadDir);
             redirectAttributes.addFlashAttribute("successMessage", "Profile picture updated!");
+        } catch (IllegalArgumentException e) {
+            redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
         } catch (IOException e) {
             redirectAttributes.addFlashAttribute("errorMessage", "Failed to upload image.");
         }

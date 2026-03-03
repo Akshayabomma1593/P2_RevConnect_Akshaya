@@ -109,6 +109,8 @@ public class FeedController {
         try {
             postService.createPost(currentUser, postDTO, image);
             redirectAttributes.addFlashAttribute("successMessage", "Post created!");
+        } catch (IllegalArgumentException e) {
+            redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
         } catch (java.io.IOException e) {
             logger.error("Controller: Failed to upload post image", e);
             redirectAttributes.addFlashAttribute("errorMessage", "Failed to upload image.");

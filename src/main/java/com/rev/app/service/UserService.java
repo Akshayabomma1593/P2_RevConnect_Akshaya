@@ -24,6 +24,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.util.Set;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -33,6 +34,9 @@ import java.util.stream.Collectors;
 public class UserService {
 
     private static final Logger logger = LogManager.getLogger(UserService.class);
+    private static final long MAX_IMAGE_BYTES = 5L * 1024 * 1024;
+    private static final Set<String> ALLOWED_IMAGE_TYPES = Set.of(
+            "image/jpeg", "image/png", "image/gif", "image/webp");
 
     private final UserRepository userRepository;
     private final NotificationPreferenceRepository notificationPreferenceRepository;
@@ -120,7 +124,9 @@ public class UserService {
 
     public String uploadProfilePicture(Long userId, MultipartFile file, String uploadDir) throws IOException {
         User user = findById(userId);
-        String filename = UUID.randomUUID() + "_" + file.getOriginalFilename();
+        validateImage(file);
+        String originalName = Paths.get(file.getOriginalFilename()).getFileName().toString();
+        String filename = UUID.randomUUID() + "_" + originalName;
         Path uploadPath = Paths.get(uploadDir);
         if (!Files.exists(uploadPath))
             Files.createDirectories(uploadPath);
@@ -128,6 +134,19 @@ public class UserService {
         user.setProfilePicture("/uploads/profile-pictures/" + filename);
         userRepository.save(user);
         return user.getProfilePicture();
+    }
+
+    private void validateImage(MultipartFile file) {
+        if (file == null || file.isEmpty()) {
+            throw new IllegalArgumentException("Image file is required.");
+        }
+        if (file.getSize() > MAX_IMAGE_BYTES) {
+            throw new IllegalArgumentException("Image size must be 5MB or less.");
+        }
+        String contentType = file.getContentType();
+        if (contentType == null || !ALLOWED_IMAGE_TYPES.contains(contentType.toLowerCase())) {
+            throw new IllegalArgumentException("Only JPG, PNG, GIF, or WEBP images are allowed.");
+        }
     }
 
     // Search using Specification (composable, type-safe)
