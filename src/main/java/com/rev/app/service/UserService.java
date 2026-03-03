@@ -2,6 +2,7 @@ package com.rev.app.service;
 
 import com.rev.app.dto.ProfileUpdateDTO;
 import com.rev.app.dto.RegisterDTO;
+import com.rev.app.dto.ApiUserSummary;
 import com.rev.app.entity.NotificationPreference;
 import com.rev.app.entity.User;
 import com.rev.app.exception.ResourceNotFoundException;
@@ -9,10 +10,8 @@ import com.rev.app.exception.UserAlreadyExistsException;
 import com.rev.app.dto.UserSummaryProjection;
 import com.rev.app.repository.NotificationPreferenceRepository;
 import com.rev.app.repository.UserRepository;
-import com.rev.app.repository.UserSpecification;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -23,14 +22,19 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.util.Set;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 @Transactional
 public class UserService {
 
     private static final Logger logger = LogManager.getLogger(UserService.class);
+    private static final long MAX_IMAGE_BYTES = 5L * 1024 * 1024;
+    private static final Set<String> ALLOWED_IMAGE_TYPES = Set.of(
+            "image/jpeg", "image/png", "image/gif", "image/webp");
 
     private final UserRepository userRepository;
     private final NotificationPreferenceRepository notificationPreferenceRepository;
@@ -105,6 +109,10 @@ public class UserService {
             user.setBusinessAddress(dto.getBusinessAddress());
         if (dto.getBusinessHours() != null)
             user.setBusinessHours(dto.getBusinessHours());
+        if (dto.getExternalLinks() != null)
+            user.setExternalLinks(dto.getExternalLinks());
+        if (dto.getShowcaseItems() != null)
+            user.setShowcaseItems(dto.getShowcaseItems());
         if (dto.getPrivacySetting() != null) {
             user.setPrivacySetting(User.PrivacySetting.valueOf(dto.getPrivacySetting()));
         }
@@ -114,7 +122,9 @@ public class UserService {
 
     public String uploadProfilePicture(Long userId, MultipartFile file, String uploadDir) throws IOException {
         User user = findById(userId);
-        String filename = UUID.randomUUID() + "_" + file.getOriginalFilename();
+        validateImage(file);
+        String originalName = Paths.get(file.getOriginalFilename()).getFileName().toString();
+        String filename = UUID.randomUUID() + "_" + originalName;
         Path uploadPath = Paths.get(uploadDir);
         if (!Files.exists(uploadPath))
             Files.createDirectories(uploadPath);
@@ -124,12 +134,43 @@ public class UserService {
         return user.getProfilePicture();
     }
 
-    // Search using Specification (composable, type-safe)
+    private void validateImage(MultipartFile file) {
+        if (file == null || file.isEmpty()) {
+            throw new IllegalArgumentException("Image file is required.");
+        }
+        if (file.getSize() > MAX_IMAGE_BYTES) {
+            throw new IllegalArgumentException("Image size must be 5MB or less.");
+        }
+        String contentType = file.getContentType();
+        if (contentType == null || !ALLOWED_IMAGE_TYPES.contains(contentType.toLowerCase())) {
+            throw new IllegalArgumentException("Only JPG, PNG, GIF, or WEBP images are allowed.");
+        }
+    }
+
     @Transactional(readOnly = true)
     public List<User> searchUsers(String query) {
-        logger.debug("Searching users with query: {}", query);
-        Specification<User> spec = UserSpecification.searchByNameOrUsername(query);
-        return userRepository.findAll(Specification.where(spec));
+        String normalized = query == null ? "" : query.trim();
+        logger.debug("Searching users with query: {}", normalized);
+        if (normalized.isEmpty()) {
+            return List.of();
+        }
+        List<User> activeResults = userRepository.searchActiveUsers(normalized);
+        logger.debug("Active search results count for '{}': {}", normalized, activeResults.size());
+        if (!activeResults.isEmpty()) {
+            return activeResults;
+        }
+        logger.debug("No active search matches for '{}'. Falling back to include inactive users.", normalized);
+        List<User> allResults = userRepository.searchUsersIncludingInactive(normalized);
+        logger.debug("Fallback search results count for '{}': {}", normalized, allResults.size());
+        return allResults;
+    }
+
+    @Transactional(readOnly = true)
+    public List<ApiUserSummary> searchUserSummaries(String query) {
+        logger.debug("Searching user summaries with query: {}", query);
+        return userRepository.searchUsers(query).stream()
+                .map(ApiUserSummary::fromProjection)
+                .collect(Collectors.toList());
     }
 
     @Transactional(readOnly = true)

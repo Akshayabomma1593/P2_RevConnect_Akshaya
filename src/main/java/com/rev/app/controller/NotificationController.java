@@ -12,6 +12,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 @Controller
 @RequestMapping("/notifications")
@@ -31,6 +32,9 @@ public class NotificationController {
 
     @GetMapping
     public String notifications(@AuthenticationPrincipal UserDetails userDetails, Model model) {
+        if (userDetails == null) {
+            return "redirect:/login";
+        }
         User currentUser = userService.findByUsername(userDetails.getUsername());
         model.addAttribute("notifications", notificationService.getNotifications(currentUser.getId()));
         model.addAttribute("unreadCount", notificationService.getUnreadCount(currentUser.getId()));
@@ -42,12 +46,19 @@ public class NotificationController {
     @PostMapping("/read/{id}")
     public String markRead(@PathVariable Long id,
             @AuthenticationPrincipal UserDetails userDetails) {
-        notificationService.markAsRead(id);
+        if (userDetails == null) {
+            return "redirect:/login";
+        }
+        User currentUser = userService.findByUsername(userDetails.getUsername());
+        notificationService.markAsRead(id, currentUser.getId());
         return "redirect:/notifications";
     }
 
     @GetMapping("/preferences")
     public String preferencesForm(@AuthenticationPrincipal UserDetails userDetails, Model model) {
+        if (userDetails == null) {
+            return "redirect:/login";
+        }
         User currentUser = userService.findByUsername(userDetails.getUsername());
         NotificationPreference prefs = preferenceRepository.findByUserId(currentUser.getId())
                 .orElseGet(() -> new NotificationPreference(currentUser));
@@ -68,6 +79,9 @@ public class NotificationController {
     public String updatePreferences(@AuthenticationPrincipal UserDetails userDetails,
             @ModelAttribute NotificationPreferenceDTO dto,
             RedirectAttributes redirectAttributes) {
+        if (userDetails == null) {
+            return "redirect:/login";
+        }
         User currentUser = userService.findByUsername(userDetails.getUsername());
         NotificationPreference prefs = preferenceRepository.findByUserId(currentUser.getId())
                 .orElseGet(() -> new NotificationPreference(currentUser));
@@ -83,15 +97,32 @@ public class NotificationController {
     }
 
     @PostMapping("/delete/{id}")
-    public String deleteNotification(@PathVariable Long id) {
-        notificationService.deleteNotification(id);
+    public String deleteNotification(@PathVariable Long id,
+            @AuthenticationPrincipal UserDetails userDetails) {
+        if (userDetails == null) {
+            return "redirect:/login";
+        }
+        User currentUser = userService.findByUsername(userDetails.getUsername());
+        notificationService.deleteNotification(id, currentUser.getId());
         return "redirect:/notifications";
     }
 
     @PostMapping("/clear")
     public String clearNotifications(@AuthenticationPrincipal UserDetails userDetails) {
+        if (userDetails == null) {
+            return "redirect:/login";
+        }
         User currentUser = userService.findByUsername(userDetails.getUsername());
         notificationService.clearAllNotifications(currentUser.getId());
         return "redirect:/notifications";
+    }
+
+    @GetMapping(value = "/stream", produces = "text/event-stream")
+    @ResponseBody
+    public SseEmitter stream(@AuthenticationPrincipal UserDetails userDetails) {
+        // Realtime stream disabled for submission stability to avoid long-lived DB-bound requests.
+        SseEmitter emitter = new SseEmitter(0L);
+        emitter.complete();
+        return emitter;
     }
 }

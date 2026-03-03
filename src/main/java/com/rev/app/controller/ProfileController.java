@@ -15,6 +15,10 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Controller
 @RequestMapping("/profile")
@@ -73,6 +77,8 @@ public class ProfileController {
         model.addAttribute("followerCount", followService.countFollowers(profileUser.getId()));
         model.addAttribute("followingCount", followService.countFollowing(profileUser.getId()));
         model.addAttribute("connectionCount", connectionService.getConnections(profileUser).size());
+        model.addAttribute("externalLinks", splitCsv(profileUser.getExternalLinks()));
+        model.addAttribute("showcaseItems", splitCsv(profileUser.getShowcaseItems()));
         model.addAttribute("unreadCount", notificationService.getUnreadCount(currentUser.getId()));
         return "profile";
     }
@@ -89,6 +95,8 @@ public class ProfileController {
         dto.setContactInfo(currentUser.getContactInfo());
         dto.setBusinessAddress(currentUser.getBusinessAddress());
         dto.setBusinessHours(currentUser.getBusinessHours());
+        dto.setExternalLinks(currentUser.getExternalLinks());
+        dto.setShowcaseItems(currentUser.getShowcaseItems());
         dto.setPrivacySetting(currentUser.getPrivacySetting().name());
         model.addAttribute("profileDTO", dto);
         model.addAttribute("currentUser", currentUser);
@@ -114,6 +122,8 @@ public class ProfileController {
             User currentUser = userService.findByUsername(userDetails.getUsername());
             userService.uploadProfilePicture(currentUser.getId(), file, uploadDir);
             redirectAttributes.addFlashAttribute("successMessage", "Profile picture updated!");
+        } catch (IllegalArgumentException e) {
+            redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
         } catch (IOException e) {
             redirectAttributes.addFlashAttribute("errorMessage", "Failed to upload image.");
         }
@@ -121,12 +131,13 @@ public class ProfileController {
     }
 
     @GetMapping("/search")
-    public String searchUsers(@RequestParam String q,
+    public String searchUsers(@RequestParam(required = false) String q,
             @AuthenticationPrincipal UserDetails userDetails,
             Model model) {
         User currentUser = userService.findByUsername(userDetails.getUsername());
-        model.addAttribute("results", userService.searchUsers(q));
-        model.addAttribute("query", q);
+        String normalized = q == null ? "" : q.trim();
+        model.addAttribute("results", userService.searchUsers(normalized));
+        model.addAttribute("query", normalized);
         model.addAttribute("currentUser", currentUser);
         model.addAttribute("unreadCount", notificationService.getUnreadCount(currentUser.getId()));
         return "search-users";
@@ -139,5 +150,15 @@ public class ProfileController {
         userService.deleteUser(currentUser.getId());
         request.getSession().invalidate();
         return "redirect:/login?deleted";
+    }
+
+    private List<String> splitCsv(String csv) {
+        if (csv == null || csv.isBlank()) {
+            return Collections.emptyList();
+        }
+        return Arrays.stream(csv.split(","))
+                .map(String::trim)
+                .filter(s -> !s.isEmpty())
+                .collect(Collectors.toList());
     }
 }

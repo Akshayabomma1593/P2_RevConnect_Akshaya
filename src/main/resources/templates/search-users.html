@@ -7,36 +7,35 @@
 </head>
 
 <body>
-    <section>
+    <section class="feed-dashboard">
         <div class="container main-content" style="grid-template-columns: 1fr;">
-            <div style="max-width: 800px; margin: 0 auto; width: 100%;">
+            <div class="search-shell">
                 <div class="mb-6">
-                    <h1 style="font-size: 1.5rem;">Global Search</h1>
-                    <p class="text-secondary text-sm" th:text="'Results for: ' + ${query}"></p>
+                    <h1>Global Search</h1>
+                    <p class="text-secondary text-sm mt-1" th:text="'Results for: ' + ${query}"></p>
                 </div>
 
-                <div th:if="${results.empty}" class="card text-center" style="padding: 4rem;">
+                <div th:if="${results.empty}" class="card text-center search-empty">
                     <i data-lucide="search-x"
                         style="width: 48px; height: 48px; margin: 0 auto 1rem; color: var(--text-muted);"></i>
                     <p class="text-secondary">No matching results found.</p>
                 </div>
 
-                <div th:each="user : ${results}" class="card mb-2 flex items-center gap-4">
-                    <div class="avatar" style="overflow: hidden;">
+                <div th:each="user : ${results}" class="card mb-2 flex items-center gap-4 search-user-card">
+                    <div class="search-user-avatar avatar">
                         <img th:if="${user.profilePicture != null}" th:src="${user.profilePicture}"
-                            style="width: 100%; height: 100%; object-fit: cover;" alt="Avatar" />
+                            class="search-user-avatar-img" alt="Avatar" />
                         <span th:if="${user.profilePicture == null}"
-                            th:text="${user.username.substring(0,1).toUpperCase()}"
-                            style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; background: var(--primary-gradient); color: white;"></span>
+                            th:text="${user.username.substring(0,1).toUpperCase()}" class="search-user-avatar-fallback"></span>
                     </div>
-                    <div style="flex: 1;">
+                    <div class="search-user-main">
                         <a th:href="@{'/profile/' + ${user.username}}" class="font-bold hover:text-primary"
                             th:text="${user.fullName ?: user.username}"></a>
                         <div class="text-xs text-secondary" th:text="'@' + ${user.username}"></div>
                         <p class="text-xs text-muted mt-2" th:if="${user.bio}"
                             th:text="${user.bio.length() > 100 ? user.bio.substring(0,100) + '...' : user.bio}"></p>
                     </div>
-                    <div class="flex flex-direction-column gap-2 items-end">
+                    <div class="flex flex-direction-column gap-2 items-end search-user-actions">
                         <span th:if="${user.role.name() != 'PERSONAL'}" class="badge mb-2"
                             th:text="${user.role}"></span>
                         <a th:href="@{'/profile/' + ${user.username}}" class="btn btn-outline btn-sm">View Profile</a>

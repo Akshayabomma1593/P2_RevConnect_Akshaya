@@ -7,21 +7,20 @@
 </head>
 
 <body>
-    <section>
+    <section class="feed-dashboard">
         <div class="container main-content">
             <div style="grid-column: 1 / 3;">
-                <div class="flex items-center justify-between mb-6">
-                    <h1 style="font-size: 1.5rem;">My Connections</h1>
-                    <div class="flex gap-2">
-                        <span class="badge" th:text="${connections.size()} + ' total'"></span>
-                    </div>
+                <div class="mb-6 profile-top-row">
+                    <h1>Connections</h1>
+                    <span class="badge" th:text="${connections.size()} + ' total'"></span>
                 </div>
 
                 <!-- Pending Requests Received -->
                 <div th:if="${pendingReceived != null and !pendingReceived.empty}" class="mb-8">
                     <h2 class="widget-title mb-4">Pending Requests (<span th:text="${pendingReceived.size()}">0</span>)
                     </h2>
-                    <div th:each="conn : ${pendingReceived}" class="card flex items-center gap-4 mb-2">
+                    <div th:each="conn : ${pendingReceived}" class="card flex items-center gap-4 mb-2 feed-post">
+                        <div class="feed-post-ribbon"></div>
                         <div class="avatar" th:text="${conn.sender.username.substring(0,1).toUpperCase()}"></div>
                         <div style="flex: 1;">
                             <a th:href="@{'/profile/' + ${conn.sender.username}}" class="font-bold hover:text-primary"
@@ -54,7 +53,8 @@
                 </div>
 
                 <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 1rem;">
-                    <div th:each="user : ${connections}" class="card flex items-center gap-4">
+                    <div th:each="user : ${connections}" class="card flex items-center gap-4 feed-post">
+                        <div class="feed-post-ribbon"></div>
                         <div class="avatar" th:text="${user.username.substring(0,1).toUpperCase()}"></div>
                         <div style="flex: 1;">
                             <a th:href="@{'/profile/' + ${user.username}}" class="font-bold hover:text-primary"

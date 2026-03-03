@@ -6,78 +6,72 @@
 </head>
 
 <body>
-    <section>
+    <section class="feed-dashboard">
         <div class="container main-content" style="grid-template-columns: 1fr;">
-            <div style="max-width: 600px; margin: 0 auto; width: 100%;">
-                <div style="margin-bottom: 2rem; display: flex; align-items: center; gap: 1rem;">
+            <div class="notifications-pref-shell">
+                <div class="mb-6 search-hashtag-head">
                     <a th:href="@{/notifications}" class="btn btn-ghost btn-sm" style="padding: 0.5rem;">
                         <i data-lucide="arrow-left" style="width: 20px;"></i>
                     </a>
-                    <h1 style="font-size: 1.75rem;">Notification Settings</h1>
+                    <h1>Notification Settings</h1>
                 </div>
 
-                <div class="alert alert-success" th:if="${successMessage}" th:text="${successMessage}"
-                    style="margin-bottom: 1.5rem; border-radius: 1rem; border-left: 4px solid #10b981;"></div>
+                <div class="alert alert-success notifications-pref-alert" th:if="${successMessage}"
+                    th:text="${successMessage}"></div>
 
-                <div class="card" style="padding: 2.5rem;">
-                    <p style="color: var(--text-secondary); margin-bottom: 2rem; font-size: 0.95rem;">
+                <div class="card notifications-pref-card">
+                    <p class="notifications-pref-copy">
                         Choose which events you want to be notified about.
                     </p>
 
                     <form th:action="@{/notifications/preferences}" method="post" th:object="${prefsDTO}">
                         <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
 
-                        <div style="display: flex; flex-direction: column; gap: 1.25rem;">
-                            <div class="checkbox-group"
-                                style="padding: 1.25rem; background: var(--bg-soft); border-radius: 0.75rem; border: 1px solid var(--border-color); display: flex; align-items: center; gap: 1rem;">
+                        <div class="notifications-pref-list">
+                            <div class="checkbox-group notifications-pref-item">
                                 <input type="checkbox" id="cr" th:field="*{connectionRequests}"
-                                    style="width: 20px; height: 20px; cursor: pointer;" />
-                                <label for="cr" style="font-weight: 600; cursor: pointer; flex: 1;">Connection
+                                    class="notifications-pref-check" />
+                                <label for="cr" class="notifications-pref-label">Connection
                                     Requests</label>
                             </div>
 
-                            <div class="checkbox-group"
-                                style="padding: 1.25rem; background: var(--bg-soft); border-radius: 0.75rem; border: 1px solid var(--border-color); display: flex; align-items: center; gap: 1rem;">
+                            <div class="checkbox-group notifications-pref-item">
                                 <input type="checkbox" id="ca" th:field="*{connectionAccepted}"
-                                    style="width: 20px; height: 20px; cursor: pointer;" />
-                                <label for="ca" style="font-weight: 600; cursor: pointer; flex: 1;">Connection
+                                    class="notifications-pref-check" />
+                                <label for="ca" class="notifications-pref-label">Connection
                                     Accepted</label>
                             </div>
 
-                            <div class="checkbox-group"
-                                style="padding: 1.25rem; background: var(--bg-soft); border-radius: 0.75rem; border: 1px solid var(--border-color); display: flex; align-items: center; gap: 1rem;">
+                            <div class="checkbox-group notifications-pref-item">
                                 <input type="checkbox" id="nf" th:field="*{newFollowers}"
-                                    style="width: 20px; height: 20px; cursor: pointer;" />
-                                <label for="nf" style="font-weight: 600; cursor: pointer; flex: 1;">New
+                                    class="notifications-pref-check" />
+                                <label for="nf" class="notifications-pref-label">New
                                     Followers</label>
                             </div>
 
-                            <div class="checkbox-group"
-                                style="padding: 1.25rem; background: var(--bg-soft); border-radius: 0.75rem; border: 1px solid var(--border-color); display: flex; align-items: center; gap: 1rem;">
+                            <div class="checkbox-group notifications-pref-item">
                                 <input type="checkbox" id="pl" th:field="*{postLikes}"
-                                    style="width: 20px; height: 20px; cursor: pointer;" />
-                                <label for="pl" style="font-weight: 600; cursor: pointer; flex: 1;">Post Likes</label>
+                                    class="notifications-pref-check" />
+                                <label for="pl" class="notifications-pref-label">Post Likes</label>
                             </div>
 
-                            <div class="checkbox-group"
-                                style="padding: 1.25rem; background: var(--bg-soft); border-radius: 0.75rem; border: 1px solid var(--border-color); display: flex; align-items: center; gap: 1rem;">
+                            <div class="checkbox-group notifications-pref-item">
                                 <input type="checkbox" id="pc" th:field="*{postComments}"
-                                    style="width: 20px; height: 20px; cursor: pointer;" />
-                                <label for="pc" style="font-weight: 600; cursor: pointer; flex: 1;">Post
+                                    class="notifications-pref-check" />
+                                <label for="pc" class="notifications-pref-label">Post
                                     Comments</label>
                             </div>
 
-                            <div class="checkbox-group"
-                                style="padding: 1.25rem; background: var(--bg-soft); border-radius: 0.75rem; border: 1px solid var(--border-color); display: flex; align-items: center; gap: 1rem;">
+                            <div class="checkbox-group notifications-pref-item">
                                 <input type="checkbox" id="ps" th:field="*{postShares}"
-                                    style="width: 20px; height: 20px; cursor: pointer;" />
-                                <label for="ps" style="font-weight: 600; cursor: pointer; flex: 1;">Post Shares</label>
+                                    class="notifications-pref-check" />
+                                <label for="ps" class="notifications-pref-label">Post Shares</label>
                             </div>
                         </div>
 
-                        <div style="margin-top: 2.5rem;">
-                            <button type="submit" class="btn btn-primary"
-                                style="width: 100%; padding: 1rem; font-weight: 700;">Save Settings</button>
+                        <div class="notifications-pref-submit">
+                            <button type="submit" class="btn btn-primary btn-full notifications-pref-save">Save
+                                Settings</button>
                         </div>
                     </form>
                 </div>

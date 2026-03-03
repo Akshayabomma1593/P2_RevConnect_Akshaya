@@ -33,6 +33,7 @@ public class AnalyticsController {
         User currentUser = userService.findByUsername(userDetails.getUsername());
         model.addAttribute("postAnalytics", analyticsService.getPostAnalytics(currentUser.getId()));
         model.addAttribute("metrics", analyticsService.getAccountMetrics(currentUser.getId()));
+        model.addAttribute("demographics", analyticsService.getFollowerDemographics(currentUser.getId()));
         model.addAttribute("currentUser", currentUser);
         model.addAttribute("unreadCount", notificationService.getUnreadCount(currentUser.getId()));
         return "analytics";

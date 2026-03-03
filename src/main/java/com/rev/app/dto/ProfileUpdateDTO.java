@@ -10,6 +10,8 @@ public class ProfileUpdateDTO {
     private String contactInfo;
     private String businessAddress;
     private String businessHours;
+    private String externalLinks;
+    private String showcaseItems;
     private String privacySetting; // "PUBLIC" or "PRIVATE"
 
     // Getters and Setters
@@ -75,6 +77,22 @@ public class ProfileUpdateDTO {
 
     public void setBusinessHours(String businessHours) {
         this.businessHours = businessHours;
+    }
+
+    public String getExternalLinks() {
+        return externalLinks;
+    }
+
+    public void setExternalLinks(String externalLinks) {
+        this.externalLinks = externalLinks;
+    }
+
+    public String getShowcaseItems() {
+        return showcaseItems;
+    }
+
+    public void setShowcaseItems(String showcaseItems) {
+        this.showcaseItems = showcaseItems;
     }
 
     public String getPrivacySetting() {

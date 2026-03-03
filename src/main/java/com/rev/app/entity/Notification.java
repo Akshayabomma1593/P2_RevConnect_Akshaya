@@ -25,8 +25,7 @@ public class Notification {
     @Column(nullable = false)
     private NotificationType type;
 
-    @Lob
-    @Column(name = "message")
+    @Column(name = "message", length = 1000)
     private String message;
 
     @Column(name = "reference_id")

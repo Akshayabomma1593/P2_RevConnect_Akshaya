@@ -28,15 +28,17 @@ public class FeedController {
     private final ConnectionService connectionService;
     private final FollowService followService;
     private final NotificationService notificationService;
+    private final ProductService productService;
 
     public FeedController(PostService postService, UserService userService,
             ConnectionService connectionService, FollowService followService,
-            NotificationService notificationService) {
+            NotificationService notificationService, ProductService productService) {
         this.postService = postService;
         this.userService = userService;
         this.connectionService = connectionService;
         this.followService = followService;
         this.notificationService = notificationService;
+        this.productService = productService;
     }
 
     @GetMapping
@@ -44,6 +46,7 @@ public class FeedController {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(required = false) String hashtag,
             @RequestParam(required = false) String type,
+            @RequestParam(required = false) String userType,
             Model model) {
         User currentUser = userService.findByUsername(userDetails.getUsername());
 
@@ -53,22 +56,26 @@ public class FeedController {
         feedUserIds.addAll(connectionService.getConnectionIds(currentUser));
         feedUserIds.addAll(followService.getFollowedIds(currentUser.getId()));
 
-        List<Post> posts;
-        if (hashtag != null && !hashtag.isBlank()) {
-            posts = postService.filterPosts(null, hashtag);
-        } else if (type != null && !type.isBlank()) {
+        Post.PostType postType = null;
+        if (type != null && !type.isBlank()) {
             try {
-                Post.PostType postType = Post.PostType.valueOf(type.toUpperCase());
-                posts = postService.filterPosts(postType, null);
-            } catch (IllegalArgumentException e) {
-                posts = postService.getFeed(feedUserIds, page, 10).getContent();
+                postType = Post.PostType.valueOf(type.toUpperCase());
+            } catch (IllegalArgumentException ignored) {
+                postType = null;
             }
-        } else {
-            Page<Post> feedPage = postService.getFeed(feedUserIds, page, 10);
-            posts = feedPage.getContent();
-            model.addAttribute("totalPages", feedPage.getTotalPages());
-            model.addAttribute("currentPage", page);
         }
+
+        User.UserRole roleFilter = null;
+        if (userType != null && !userType.isBlank()) {
+            try {
+                roleFilter = User.UserRole.valueOf(userType.toUpperCase());
+            } catch (IllegalArgumentException ignored) {
+                roleFilter = null;
+            }
+        }
+
+        Page<Post> feedPage = postService.getFilteredFeed(feedUserIds, page, 10, postType, hashtag, roleFilter);
+        List<Post> posts = feedPage.getContent();
 
         model.addAttribute("posts", posts);
         model.addAttribute("currentUser", currentUser);
@@ -77,6 +84,13 @@ public class FeedController {
         model.addAttribute("connectionCount", connectionService.getConnections(currentUser).size());
         model.addAttribute("followerCount", followService.countFollowing(currentUser.getId()));
         model.addAttribute("trending", postService.getTrendingPosts(0).getContent());
+        model.addAttribute("totalPages", feedPage.getTotalPages());
+        model.addAttribute("currentPage", page);
+        model.addAttribute("activeType", type != null ? type.toLowerCase() : "");
+        model.addAttribute("activeUserType", userType != null ? userType.toLowerCase() : "");
+        model.addAttribute("ownedProducts",
+                currentUser.getRole() == User.UserRole.PERSONAL ? List.of()
+                        : productService.getActiveProductsForOwner(currentUser.getId()));
         return "feed";
     }
 
@@ -86,18 +100,31 @@ public class FeedController {
             @RequestParam(value = "image", required = false) org.springframework.web.multipart.MultipartFile image,
             RedirectAttributes redirectAttributes) {
         User currentUser = userService.findByUsername(userDetails.getUsername());
+        String content = postDTO.getContent() != null ? postDTO.getContent().trim() : "";
+        boolean hasImage = image != null && !image.isEmpty();
 
         logger.info("Controller: Received post request from user: {}", currentUser.getUsername());
-        logger.info("Controller: Content length: {}", postDTO.getContent() != null ? postDTO.getContent().length() : 0);
-        logger.info("Controller: Image presence: {}, Original Filename: {}", (image != null),
+        logger.info("Controller: Content length: {}", content.length());
+        logger.info("Controller: Image presence: {}, Original Filename: {}", hasImage,
                 (image != null ? image.getOriginalFilename() : "N/A"));
+
+        if (content.isEmpty() && !hasImage) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Please add text or select an image before publishing.");
+            return "redirect:/feed";
+        }
+        postDTO.setContent(content);
 
         try {
             postService.createPost(currentUser, postDTO, image);
             redirectAttributes.addFlashAttribute("successMessage", "Post created!");
+        } catch (IllegalArgumentException e) {
+            redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
         } catch (java.io.IOException e) {
             logger.error("Controller: Failed to upload post image", e);
             redirectAttributes.addFlashAttribute("errorMessage", "Failed to upload image.");
+        } catch (Exception e) {
+            logger.error("Controller: Failed to create post", e);
+            redirectAttributes.addFlashAttribute("errorMessage", "Unable to create post right now. Please try again.");
         }
         return "redirect:/feed";
     }
