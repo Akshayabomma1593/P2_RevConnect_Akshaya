@@ -25,6 +25,20 @@ public interface UserRepository extends JpaRepository<User, Long>,
 
         boolean existsByEmail(String email);
 
+        @Query(value = "SELECT * FROM users u WHERE (u.is_active = true OR u.is_active IS NULL) AND (" +
+                        "LOWER(u.username) LIKE LOWER(CONCAT('%', :query, '%')) OR " +
+                        "LOWER(COALESCE(u.full_name, '')) LIKE LOWER(CONCAT('%', :query, '%')) OR " +
+                        "LOWER(u.email) LIKE LOWER(CONCAT('%', :query, '%')))",
+                        nativeQuery = true)
+        List<User> searchActiveUsers(@Param("query") String query);
+
+        @Query(value = "SELECT * FROM users u WHERE " +
+                        "LOWER(u.username) LIKE LOWER(CONCAT('%', :query, '%')) OR " +
+                        "LOWER(COALESCE(u.full_name, '')) LIKE LOWER(CONCAT('%', :query, '%')) OR " +
+                        "LOWER(u.email) LIKE LOWER(CONCAT('%', :query, '%'))",
+                        nativeQuery = true)
+        List<User> searchUsersIncludingInactive(@Param("query") String query);
+
         // Projection: lightweight user summaries for search results
         @Query("SELECT u FROM User u WHERE " +
                         "(LOWER(u.username) LIKE LOWER(CONCAT('%', :query, '%')) " +

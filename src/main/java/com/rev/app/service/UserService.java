@@ -10,10 +10,8 @@ import com.rev.app.exception.UserAlreadyExistsException;
 import com.rev.app.dto.UserSummaryProjection;
 import com.rev.app.repository.NotificationPreferenceRepository;
 import com.rev.app.repository.UserRepository;
-import com.rev.app.repository.UserSpecification;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -149,12 +147,22 @@ public class UserService {
         }
     }
 
-    // Search using Specification (composable, type-safe)
     @Transactional(readOnly = true)
     public List<User> searchUsers(String query) {
-        logger.debug("Searching users with query: {}", query);
-        Specification<User> spec = UserSpecification.searchByNameOrUsername(query);
-        return userRepository.findAll(Specification.where(spec));
+        String normalized = query == null ? "" : query.trim();
+        logger.debug("Searching users with query: {}", normalized);
+        if (normalized.isEmpty()) {
+            return List.of();
+        }
+        List<User> activeResults = userRepository.searchActiveUsers(normalized);
+        logger.debug("Active search results count for '{}': {}", normalized, activeResults.size());
+        if (!activeResults.isEmpty()) {
+            return activeResults;
+        }
+        logger.debug("No active search matches for '{}'. Falling back to include inactive users.", normalized);
+        List<User> allResults = userRepository.searchUsersIncludingInactive(normalized);
+        logger.debug("Fallback search results count for '{}': {}", normalized, allResults.size());
+        return allResults;
     }
 
     @Transactional(readOnly = true)

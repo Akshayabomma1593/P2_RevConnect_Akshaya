@@ -131,12 +131,13 @@ public class ProfileController {
     }
 
     @GetMapping("/search")
-    public String searchUsers(@RequestParam String q,
+    public String searchUsers(@RequestParam(required = false) String q,
             @AuthenticationPrincipal UserDetails userDetails,
             Model model) {
         User currentUser = userService.findByUsername(userDetails.getUsername());
-        model.addAttribute("results", userService.searchUsers(q));
-        model.addAttribute("query", q);
+        String normalized = q == null ? "" : q.trim();
+        model.addAttribute("results", userService.searchUsers(normalized));
+        model.addAttribute("query", normalized);
         model.addAttribute("currentUser", currentUser);
         model.addAttribute("unreadCount", notificationService.getUnreadCount(currentUser.getId()));
         return "search-users";
