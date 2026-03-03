@@ -11,7 +11,7 @@ public class PostMapper {
     public Post toEntity(PostDTO dto, User author) {
         Post post = new Post();
         post.setAuthor(author);
-        post.setContent(dto.getContent());
+        post.setContent(dto.getContent() != null ? dto.getContent() : "");
         String tags = dto.getHashtags();
         if (tags != null) {
             // Normalize: replace spaces with commas, then clean up double commas

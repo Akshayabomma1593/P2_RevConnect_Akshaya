@@ -47,7 +47,7 @@
                             <i data-lucide="settings" class="icon-peach" style="width: 16px;"></i>
                             <span>Edit Profile</span>
                         </a>
-                        <a th:href="@{/connections}" class="nav-link py-2 px-1 text-sm inline-flex items-center gap-2">
+                        <a th:if="${currentUser.role.name() == 'PERSONAL'}" th:href="@{/connections}" class="nav-link py-2 px-1 text-sm inline-flex items-center gap-2">
                             <i data-lucide="users" class="icon-sky" style="width: 16px;"></i>
                             <span>My Network</span>
                         </a>
@@ -57,6 +57,14 @@
 
             <div class="feed-column">
                 <div class="card rc-composer feed-composer-shell mb-8">
+                    <div class="alert alert-success mb-4" th:if="${successMessage != null}">
+                        <i data-lucide="check-circle" style="width: 18px;"></i>
+                        <span th:text="${successMessage}"></span>
+                    </div>
+                    <div class="alert alert-error mb-4" th:if="${errorMessage != null}">
+                        <i data-lucide="alert-circle" style="width: 18px;"></i>
+                        <span th:text="${errorMessage}"></span>
+                    </div>
                     <form th:action="@{/feed/post}" method="post" id="postForm" enctype="multipart/form-data">
                         <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
 
@@ -74,7 +82,7 @@
                                 <textarea name="content" id="postContent"
                                     class="form-control border-none shadow-none px-0 py-2 mb-2"
                                     style="resize: none; font-size: 1.15rem; font-weight: 400;"
-                                    placeholder="What are you building today?" required></textarea>
+                                    placeholder="What are you building today?"></textarea>
 
                                 <div id="imagePreviewContainer"
                                     style="display: none; position: relative; margin-bottom: 1rem; border-radius: 12px; overflow: hidden; border: 1px solid var(--border-color);">
@@ -85,19 +93,14 @@
                                     </button>
                                 </div>
 
-                                <div id="hashtagRow" style="display: none; margin-bottom: 0.75rem;">
+                                <div id="hashtagRow" style="display: block; margin-bottom: 0.75rem;">
                                     <input type="text" name="hashtags" id="hashtagInput" class="form-control"
                                         style="font-size: 0.875rem; border-style: dashed;"
                                         placeholder="e.g. spring, product, startup (comma-separated)" />
                                 </div>
 
                                 <div th:if="${currentUser.role.name() != 'PERSONAL'}" class="rc-business-wrap mb-3">
-                                    <button type="button" class="btn btn-ghost btn-sm" id="toggleBusinessFields">
-                                        <i data-lucide="briefcase" style="width: 16px;"></i>
-                                        <span>Business options</span>
-                                    </button>
-
-                                    <div id="businessFields" style="display: none; margin-top: 0.75rem;">
+                                    <div id="businessFields" style="display: block; margin-top: 0.75rem;">
                                         <div class="rc-grid-two">
                                             <div>
                                                 <label for="postType" class="text-xs text-muted block mb-2">Post type</label>
@@ -158,16 +161,16 @@
                                 <div class="flex items-center justify-between pt-4 border-t border-slate-50">
                                     <div class="flex gap-3">
                                         <input type="file" name="image" id="imageInput" accept="image/*"
-                                            style="display: none;" />
-                                        <button type="button" id="imgBtn" class="btn btn-ghost btn-sm" title="Upload image">
+                                            style="position: absolute; left: -9999px; width: 1px; height: 1px; opacity: 0;" />
+                                        <label for="imageInput" id="imgBtn" class="btn btn-ghost btn-sm" title="Upload image"
+                                            style="cursor: pointer;">
                                             <i data-lucide="image" class="icon-sky" style="width: 18px;"></i>
-                                        </button>
-                                        <button type="button" id="hashBtn" class="btn btn-ghost btn-sm" title="Add hashtags">
-                                            <i data-lucide="hash" class="icon-lavender" style="width: 18px;"></i>
-                                        </button>
+                                            <span>Upload image</span>
+                                        </label>
                                     </div>
                                     <button type="submit" class="btn btn-primary">Publish</button>
                                 </div>
+                                <p id="selectedFileName" class="text-xs text-secondary mt-2"></p>
                             </div>
                         </div>
                     </form>
@@ -277,26 +280,6 @@
                     </form>
                 </div>
 
-                <div class="card mb-8">
-                    <div class="widget-title">Quick Filters</div>
-                    <div class="feed-filter-grid">
-                        <a th:href="@{/feed(userType=${activeUserType})}" class="btn btn-outline btn-sm">All</a>
-                        <a th:href="@{/feed(type='regular',userType=${activeUserType})}" class="btn btn-outline btn-sm">Regular</a>
-                        <a th:href="@{/feed(type='promotional',userType=${activeUserType})}" class="btn btn-outline btn-sm">Promo</a>
-                        <a th:href="@{/feed(type='announcement',userType=${activeUserType})}" class="btn btn-outline btn-sm">Announcements</a>
-                    </div>
-                </div>
-
-                <div class="card mb-8">
-                    <div class="widget-title">User Type</div>
-                    <div class="feed-filter-grid">
-                        <a th:href="@{/feed(type=${activeType})}" class="btn btn-outline btn-sm">All</a>
-                        <a th:href="@{/feed(userType='personal',type=${activeType})}" class="btn btn-outline btn-sm">Personal</a>
-                        <a th:href="@{/feed(userType='creator',type=${activeType})}" class="btn btn-outline btn-sm">Creator</a>
-                        <a th:href="@{/feed(userType='business',type=${activeType})}" class="btn btn-outline btn-sm">Business</a>
-                    </div>
-                </div>
-
                 <div class="card mb-8" th:if="${trending != null and !trending.empty}">
                     <div class="widget-title">Trending</div>
                     <div class="flex flex-direction-column gap-2">
@@ -315,53 +298,59 @@
     </section>
 
     <script>
-        document.getElementById("hashBtn").addEventListener("click", function () {
-            var row = document.getElementById("hashtagRow");
-            var isHidden = row.style.display === "none";
-            row.style.display = isHidden ? "block" : "none";
-            if (isHidden) {
-                document.getElementById("hashtagInput").focus();
-            }
-        });
-
         const imgBtn = document.getElementById("imgBtn");
         const imageInput = document.getElementById("imageInput");
         const imagePreviewContainer = document.getElementById("imagePreviewContainer");
         const imagePreview = document.getElementById("imagePreview");
         const removeImgBtn = document.getElementById("removeImgBtn");
+        const selectedFileName = document.getElementById("selectedFileName");
 
-        imgBtn.addEventListener("click", () => imageInput.click());
+        if (imgBtn && imageInput) {
+            imgBtn.addEventListener("click", function (event) {
+                event.preventDefault();
+                if (typeof imageInput.showPicker === "function") {
+                    imageInput.showPicker();
+                } else {
+                    imageInput.click();
+                }
+            });
+        }
 
-        imageInput.addEventListener("change", function () {
-            const file = this.files[0];
-            if (!file) {
-                return;
-            }
-            const reader = new FileReader();
-            reader.onload = function (e) {
-                imagePreview.src = e.target.result;
-                imagePreviewContainer.style.display = "block";
-            };
-            reader.readAsDataURL(file);
-        });
+        if (imageInput && imagePreview && imagePreviewContainer) {
+            imageInput.addEventListener("change", function () {
+                const file = this.files[0];
+                if (!file) {
+                    if (selectedFileName) {
+                        selectedFileName.textContent = "";
+                    }
+                    return;
+                }
+                if (selectedFileName) {
+                    selectedFileName.textContent = "Selected: " + file.name;
+                }
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    imagePreview.src = e.target.result;
+                    imagePreviewContainer.style.display = "block";
+                };
+                reader.readAsDataURL(file);
+            });
+        }
 
-        removeImgBtn.addEventListener("click", function () {
-            imageInput.value = "";
-            imagePreviewContainer.style.display = "none";
-            imagePreview.src = "#";
-        });
+        if (removeImgBtn && imageInput && imagePreviewContainer && imagePreview) {
+            removeImgBtn.addEventListener("click", function () {
+                imageInput.value = "";
+                imagePreviewContainer.style.display = "none";
+                imagePreview.src = "#";
+                if (selectedFileName) {
+                    selectedFileName.textContent = "";
+                }
+            });
+        }
 
-        const businessToggle = document.getElementById("toggleBusinessFields");
         const businessFields = document.getElementById("businessFields");
         const postType = document.getElementById("postType");
         const ctaFields = document.getElementById("ctaFields");
-
-        if (businessToggle && businessFields) {
-            businessToggle.addEventListener("click", function () {
-                const closed = businessFields.style.display === "none";
-                businessFields.style.display = closed ? "block" : "none";
-            });
-        }
 
         if (postType && ctaFields) {
             const updateCtaVisibility = function () {

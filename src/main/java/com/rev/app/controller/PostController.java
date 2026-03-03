@@ -118,11 +118,18 @@ public class PostController {
 
     @PostMapping("/{id}/like")
     public String likePost(@PathVariable Long id,
-            @AuthenticationPrincipal UserDetails userDetails) {
-        User currentUser = userService.findByUsername(userDetails.getUsername());
-        Post post = postService.findById(id);
-        interactionService.toggleLike(post, currentUser);
-        return "redirect:/posts/" + id;
+            @AuthenticationPrincipal UserDetails userDetails,
+            RedirectAttributes redirectAttributes) {
+        try {
+            User currentUser = userService.findByUsername(userDetails.getUsername());
+            Post post = postService.findById(id);
+            interactionService.toggleLike(post, currentUser);
+        } catch (Exception ex) {
+            logger.error("Failed to like/unlike post {}", id, ex);
+            redirectAttributes.addFlashAttribute("errorMessage", "Unable to process like right now. Please retry.");
+            return "redirect:/feed";
+        }
+        return "redirect:/feed";
     }
 
     @PostMapping("/{id}/comment")
@@ -165,9 +172,14 @@ public class PostController {
     public String sharePost(@PathVariable Long id,
             @AuthenticationPrincipal UserDetails userDetails,
             RedirectAttributes redirectAttributes) {
-        User currentUser = userService.findByUsername(userDetails.getUsername());
-        postService.sharePost(id, currentUser);
-        redirectAttributes.addFlashAttribute("successMessage", "Post shared!");
+        try {
+            User currentUser = userService.findByUsername(userDetails.getUsername());
+            postService.sharePost(id, currentUser);
+            redirectAttributes.addFlashAttribute("successMessage", "Post shared!");
+        } catch (Exception ex) {
+            logger.error("Failed to share post {}", id, ex);
+            redirectAttributes.addFlashAttribute("errorMessage", "Unable to share post right now. Please retry.");
+        }
         return "redirect:/feed";
     }
 

@@ -100,11 +100,19 @@ public class FeedController {
             @RequestParam(value = "image", required = false) org.springframework.web.multipart.MultipartFile image,
             RedirectAttributes redirectAttributes) {
         User currentUser = userService.findByUsername(userDetails.getUsername());
+        String content = postDTO.getContent() != null ? postDTO.getContent().trim() : "";
+        boolean hasImage = image != null && !image.isEmpty();
 
         logger.info("Controller: Received post request from user: {}", currentUser.getUsername());
-        logger.info("Controller: Content length: {}", postDTO.getContent() != null ? postDTO.getContent().length() : 0);
-        logger.info("Controller: Image presence: {}, Original Filename: {}", (image != null),
+        logger.info("Controller: Content length: {}", content.length());
+        logger.info("Controller: Image presence: {}, Original Filename: {}", hasImage,
                 (image != null ? image.getOriginalFilename() : "N/A"));
+
+        if (content.isEmpty() && !hasImage) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Please add text or select an image before publishing.");
+            return "redirect:/feed";
+        }
+        postDTO.setContent(content);
 
         try {
             postService.createPost(currentUser, postDTO, image);
@@ -114,6 +122,9 @@ public class FeedController {
         } catch (java.io.IOException e) {
             logger.error("Controller: Failed to upload post image", e);
             redirectAttributes.addFlashAttribute("errorMessage", "Failed to upload image.");
+        } catch (Exception e) {
+            logger.error("Controller: Failed to create post", e);
+            redirectAttributes.addFlashAttribute("errorMessage", "Unable to create post right now. Please try again.");
         }
         return "redirect:/feed";
     }
