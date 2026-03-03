@@ -31,6 +31,10 @@
                                     <i data-lucide="edit-3" style="width: 16px;"></i>
                                     <span>Edit</span>
                                 </a>
+                                <a th:if="${currentUser.role.name() != 'PERSONAL'}" th:href="@{/business/page}"
+                                    class="btn btn-outline btn-sm">
+                                    <span>Manage Page</span>
+                                </a>
                             </div>
                             <div th:if="${!isOwnProfile}" class="flex gap-2">
                                 <!-- Connect -->
@@ -103,6 +107,40 @@
                             <div class="stat-item-minimal">
                                 <div class="stat-value" th:text="${connectionCount}">0</div>
                                 <div class="stat-label">Connections</div>
+                            </div>
+                        </div>
+
+                        <div th:if="${profileUser.role.name() != 'PERSONAL'}" class="mt-8">
+                            <div class="widget-title">Business/Creator Details</div>
+                            <div class="flex flex-direction-column gap-2 text-sm text-secondary mb-6">
+                                <div th:if="${profileUser.category != null and !profileUser.category.isEmpty()}">
+                                    Category: <span class="font-bold" th:text="${profileUser.category}"></span>
+                                </div>
+                                <div th:if="${profileUser.contactInfo != null and !profileUser.contactInfo.isEmpty()}">
+                                    Contact: <span class="font-bold" th:text="${profileUser.contactInfo}"></span>
+                                </div>
+                                <div th:if="${profileUser.businessAddress != null and !profileUser.businessAddress.isEmpty()}">
+                                    Address: <span class="font-bold" th:text="${profileUser.businessAddress}"></span>
+                                </div>
+                                <div th:if="${profileUser.businessHours != null and !profileUser.businessHours.isEmpty()}">
+                                    Hours: <span class="font-bold" th:text="${profileUser.businessHours}"></span>
+                                </div>
+                            </div>
+
+                            <div th:if="${showcaseItems != null and !showcaseItems.isEmpty()}" class="mb-4">
+                                <div class="widget-title">Showcase</div>
+                                <div class="flex gap-2" style="flex-wrap: wrap;">
+                                    <span th:each="item : ${showcaseItems}" class="badge"
+                                        th:text="${item}">Item</span>
+                                </div>
+                            </div>
+
+                            <div th:if="${externalLinks != null and !externalLinks.isEmpty()}">
+                                <div class="widget-title">External Links</div>
+                                <div class="flex flex-direction-column gap-2">
+                                    <a th:each="link : ${externalLinks}" th:href="${link}" target="_blank"
+                                        class="text-sm icon-sky" th:text="${link}">https://example.com</a>
+                                </div>
                             </div>
                         </div>
                     </div>

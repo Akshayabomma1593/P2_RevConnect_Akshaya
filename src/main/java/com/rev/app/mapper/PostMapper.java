@@ -18,6 +18,11 @@ public class PostMapper {
             tags = tags.replace(" ", ",").replaceAll(",+", ",");
         }
         post.setHashtags(tags);
+        String productTags = dto.getProductTags();
+        if (productTags != null) {
+            productTags = productTags.replace(";", ",").replaceAll(",+", ",");
+        }
+        post.setProductTags(productTags);
         post.setPostType(dto.getPostType() != null ? dto.getPostType() : Post.PostType.REGULAR);
         post.setCtaLabel(dto.getCtaLabel());
         post.setCtaUrl(dto.getCtaUrl());

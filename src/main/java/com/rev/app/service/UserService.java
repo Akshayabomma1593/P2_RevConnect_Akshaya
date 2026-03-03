@@ -2,6 +2,7 @@ package com.rev.app.service;
 
 import com.rev.app.dto.ProfileUpdateDTO;
 import com.rev.app.dto.RegisterDTO;
+import com.rev.app.dto.ApiUserSummary;
 import com.rev.app.entity.NotificationPreference;
 import com.rev.app.entity.User;
 import com.rev.app.exception.ResourceNotFoundException;
@@ -25,6 +26,7 @@ import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 @Transactional
@@ -105,6 +107,10 @@ public class UserService {
             user.setBusinessAddress(dto.getBusinessAddress());
         if (dto.getBusinessHours() != null)
             user.setBusinessHours(dto.getBusinessHours());
+        if (dto.getExternalLinks() != null)
+            user.setExternalLinks(dto.getExternalLinks());
+        if (dto.getShowcaseItems() != null)
+            user.setShowcaseItems(dto.getShowcaseItems());
         if (dto.getPrivacySetting() != null) {
             user.setPrivacySetting(User.PrivacySetting.valueOf(dto.getPrivacySetting()));
         }
@@ -130,6 +136,14 @@ public class UserService {
         logger.debug("Searching users with query: {}", query);
         Specification<User> spec = UserSpecification.searchByNameOrUsername(query);
         return userRepository.findAll(Specification.where(spec));
+    }
+
+    @Transactional(readOnly = true)
+    public List<ApiUserSummary> searchUserSummaries(String query) {
+        logger.debug("Searching user summaries with query: {}", query);
+        return userRepository.searchUsers(query).stream()
+                .map(ApiUserSummary::fromProjection)
+                .collect(Collectors.toList());
     }
 
     @Transactional(readOnly = true)

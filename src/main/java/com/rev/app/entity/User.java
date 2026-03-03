@@ -73,6 +73,14 @@ public class User {
     @Column(name = "business_hours")
     private String businessHours;
 
+    @Lob
+    @Column(name = "external_links")
+    private String externalLinks;
+
+    @Lob
+    @Column(name = "showcase_items")
+    private String showcaseItems;
+
     @CreationTimestamp
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
@@ -249,6 +257,22 @@ public class User {
 
     public void setBusinessHours(String businessHours) {
         this.businessHours = businessHours;
+    }
+
+    public String getExternalLinks() {
+        return externalLinks;
+    }
+
+    public void setExternalLinks(String externalLinks) {
+        this.externalLinks = externalLinks;
+    }
+
+    public String getShowcaseItems() {
+        return showcaseItems;
+    }
+
+    public void setShowcaseItems(String showcaseItems) {
+        this.showcaseItems = showcaseItems;
     }
 
     public LocalDateTime getCreatedAt() {

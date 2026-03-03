@@ -28,6 +28,12 @@ public class ConnectionService {
     }
 
     public Connection sendRequest(User sender, User receiver) {
+        if (sender.getId().equals(receiver.getId())) {
+            throw new IllegalStateException("You cannot connect with yourself.");
+        }
+        if (sender.getRole() != User.UserRole.PERSONAL || receiver.getRole() != User.UserRole.PERSONAL) {
+            throw new IllegalStateException("Connections are allowed only between personal accounts.");
+        }
         if (connectionRepository.connectionExists(sender.getId(), receiver.getId())) {
             throw new IllegalStateException("Connection already exists or is pending.");
         }

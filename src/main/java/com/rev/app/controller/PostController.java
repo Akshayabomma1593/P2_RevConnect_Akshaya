@@ -9,6 +9,8 @@ import com.rev.app.service.InteractionService;
 import com.rev.app.service.NotificationService;
 import com.rev.app.service.PostService;
 import com.rev.app.service.UserService;
+import com.rev.app.service.ProductService;
+import com.rev.app.service.CommentReplyService;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -19,6 +21,8 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Controller
 @RequestMapping("/posts")
@@ -30,14 +34,19 @@ public class PostController {
     private final UserService userService;
     private final InteractionService interactionService;
     private final NotificationService notificationService;
+    private final ProductService productService;
+    private final CommentReplyService commentReplyService;
 
     public PostController(PostService postService, UserService userService,
             InteractionService interactionService,
-            NotificationService notificationService) {
+            NotificationService notificationService, ProductService productService,
+            CommentReplyService commentReplyService) {
         this.postService = postService;
         this.userService = userService;
         this.interactionService = interactionService;
         this.notificationService = notificationService;
+        this.productService = productService;
+        this.commentReplyService = commentReplyService;
     }
 
     @GetMapping("/{id}")
@@ -46,10 +55,14 @@ public class PostController {
             Model model) {
         User currentUser = userService.findByUsername(userDetails.getUsername());
         Post post = postService.findById(id);
+        postService.recordView(post, currentUser);
         List<Comment> comments = interactionService.getComments(id);
+        Map<Long, List<com.rev.app.entity.CommentReply>> repliesByComment = commentReplyService.getRepliesForPost(id)
+                .stream().collect(Collectors.groupingBy(r -> r.getComment().getId()));
 
         model.addAttribute("post", post);
         model.addAttribute("comments", comments);
+        model.addAttribute("repliesByComment", repliesByComment);
         model.addAttribute("currentUser", currentUser);
         model.addAttribute("isLiked", interactionService.isLiked(currentUser.getId(), id));
         model.addAttribute("likeCount", interactionService.getLikeCount(id));
@@ -70,12 +83,15 @@ public class PostController {
         PostDTO dto = new PostDTO();
         dto.setContent(post.getContent());
         dto.setHashtags(post.getHashtags());
+        dto.setProductTags(post.getProductTags());
         dto.setCtaLabel(post.getCtaLabel());
         dto.setCtaUrl(post.getCtaUrl());
+        dto.setProductIds(post.getTaggedProducts().stream().map(com.rev.app.entity.Product::getId).toList());
         dto.setPinned(post.isPinned());
         model.addAttribute("postDTO", dto);
         model.addAttribute("postId", id);
         model.addAttribute("currentUser", currentUser);
+        model.addAttribute("ownedProducts", productService.getActiveProductsForOwner(currentUser.getId()));
         return "post-edit";
     }
 
@@ -126,6 +142,22 @@ public class PostController {
             @RequestParam Long postId) {
         User currentUser = userService.findByUsername(userDetails.getUsername());
         interactionService.deleteComment(commentId, currentUser.getId());
+        return "redirect:/posts/" + postId;
+    }
+
+    @PostMapping("/comments/{commentId}/reply")
+    public String replyToComment(@PathVariable Long commentId,
+            @RequestParam Long postId,
+            @RequestParam String content,
+            @AuthenticationPrincipal UserDetails userDetails,
+            RedirectAttributes redirectAttributes) {
+        User currentUser = userService.findByUsername(userDetails.getUsername());
+        try {
+            commentReplyService.addReply(commentId, currentUser, content);
+            redirectAttributes.addFlashAttribute("successMessage", "Reply posted.");
+        } catch (RuntimeException ex) {
+            redirectAttributes.addFlashAttribute("errorMessage", ex.getMessage());
+        }
         return "redirect:/posts/" + postId;
     }
 

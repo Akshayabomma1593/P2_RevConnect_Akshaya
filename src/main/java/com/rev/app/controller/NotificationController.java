@@ -12,6 +12,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 @Controller
 @RequestMapping("/notifications")
@@ -108,5 +109,17 @@ public class NotificationController {
         User currentUser = userService.findByUsername(userDetails.getUsername());
         notificationService.clearAllNotifications(currentUser.getId());
         return "redirect:/notifications";
+    }
+
+    @GetMapping(value = "/stream", produces = "text/event-stream")
+    @ResponseBody
+    public SseEmitter stream(@AuthenticationPrincipal UserDetails userDetails) {
+        if (userDetails == null) {
+            SseEmitter emitter = new SseEmitter(0L);
+            emitter.complete();
+            return emitter;
+        }
+        User currentUser = userService.findByUsername(userDetails.getUsername());
+        return notificationService.subscribe(currentUser.getId());
     }
 }

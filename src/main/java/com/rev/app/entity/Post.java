@@ -7,6 +7,8 @@ import org.hibernate.annotations.UpdateTimestamp;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
+import java.util.HashSet;
 
 @Entity
 @Table(name = "posts")
@@ -26,6 +28,9 @@ public class Post {
 
     @Column(name = "hashtags")
     private String hashtags; // comma-separated
+
+    @Column(name = "product_tags")
+    private String productTags; // comma-separated
 
     @Enumerated(EnumType.STRING)
     @Column(name = "post_type")
@@ -73,6 +78,10 @@ public class Post {
     @OneToMany(mappedBy = "originalPost", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<Post> shares = new ArrayList<>();
 
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(name = "post_tagged_products", joinColumns = @JoinColumn(name = "post_id"), inverseJoinColumns = @JoinColumn(name = "product_id"))
+    private Set<Product> taggedProducts = new HashSet<>();
+
     public enum PostType {
         REGULAR, PROMOTIONAL, ANNOUNCEMENT, REPOST
     }
@@ -117,6 +126,14 @@ public class Post {
 
     public void setHashtags(String hashtags) {
         this.hashtags = hashtags;
+    }
+
+    public String getProductTags() {
+        return productTags;
+    }
+
+    public void setProductTags(String productTags) {
+        this.productTags = productTags;
     }
 
     public PostType getPostType() {
@@ -201,6 +218,14 @@ public class Post {
 
     public List<Post> getShares() {
         return shares;
+    }
+
+    public Set<Product> getTaggedProducts() {
+        return taggedProducts;
+    }
+
+    public void setTaggedProducts(Set<Product> taggedProducts) {
+        this.taggedProducts = taggedProducts;
     }
 
     public int getLikeCount() {

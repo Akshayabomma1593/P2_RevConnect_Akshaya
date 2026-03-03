@@ -33,6 +33,7 @@ class FollowServiceTest {
         User followed = new User();
         followed.setId(2L);
         followed.setUsername("bob");
+        followed.setRole(User.UserRole.CREATOR);
         Follow follow = new Follow(follower, followed);
 
         when(followRepository.existsByFollowerIdAndFollowedId(1L, 2L)).thenReturn(false);
@@ -50,6 +51,7 @@ class FollowServiceTest {
         follower.setId(1L);
         User followed = new User();
         followed.setId(2L);
+        followed.setRole(User.UserRole.CREATOR);
         when(followRepository.existsByFollowerIdAndFollowedId(1L, 2L)).thenReturn(true);
 
         assertThrows(IllegalStateException.class, () -> followService.follow(follower, followed));

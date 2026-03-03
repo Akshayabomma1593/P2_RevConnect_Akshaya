@@ -3,8 +3,10 @@ package com.rev.app.service;
 import com.rev.app.entity.User;
 import com.rev.app.repository.CommentRepository;
 import com.rev.app.repository.ConnectionRepository;
+import com.rev.app.repository.FollowRepository;
 import com.rev.app.repository.LikeRepository;
 import com.rev.app.repository.PostRepository;
+import com.rev.app.repository.PostViewRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -28,9 +30,13 @@ class AnalyticsServiceTest {
     @Mock
     private FollowService followService;
     @Mock
+    private FollowRepository followRepository;
+    @Mock
     private UserService userService;
     @Mock
     private ConnectionRepository connectionRepository;
+    @Mock
+    private PostViewRepository postViewRepository;
 
     @InjectMocks
     private AnalyticsService analyticsService;
@@ -44,6 +50,7 @@ class AnalyticsServiceTest {
         when(followService.countFollowers(1L)).thenReturn(20L);
         when(followService.countFollowing(1L)).thenReturn(30L);
         when(connectionRepository.countConnections(user)).thenReturn(40L);
+        when(postViewRepository.countByAuthorId(1L)).thenReturn(50L);
 
         Map<String, Object> metrics = analyticsService.getAccountMetrics(1L);
 
@@ -51,5 +58,6 @@ class AnalyticsServiceTest {
         assertEquals(20L, metrics.get("totalFollowers"));
         assertEquals(30L, metrics.get("totalFollowing"));
         assertEquals(40L, metrics.get("totalConnections"));
+        assertEquals(50L, metrics.get("totalReach"));
     }
 }

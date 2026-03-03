@@ -1,5 +1,6 @@
 package com.rev.app.rest;
 
+import com.rev.app.dto.ApiUserSummary;
 import com.rev.app.entity.User;
 import com.rev.app.service.UserService;
 import org.junit.jupiter.api.BeforeEach;
@@ -30,12 +31,8 @@ class UserRestControllerTest {
 
     @Test
     void searchUsers_returnsList() throws Exception {
-        User user = new User();
-        user.setId(1L);
-        user.setUsername("alice");
-        user.setPassword("x");
-        user.setEmail("alice@example.com");
-        Mockito.when(userService.searchUsers("ali")).thenReturn(List.of(user));
+        ApiUserSummary user = new ApiUserSummary(1L, "alice", "Alice", null, "PERSONAL", "bio");
+        Mockito.when(userService.searchUserSummaries("ali")).thenReturn(List.of(user));
 
         mockMvc.perform(get("/api/users/search").param("q", "ali").accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
@@ -45,7 +42,12 @@ class UserRestControllerTest {
 
     @Test
     void deleteUser_returnsNoContent() throws Exception {
-        mockMvc.perform(delete("/api/users/10"))
+        User currentUser = new User();
+        currentUser.setId(10L);
+        currentUser.setUsername("alice");
+        Mockito.when(userService.findByUsername("alice")).thenReturn(currentUser);
+
+        mockMvc.perform(delete("/api/users/10").principal(() -> "alice"))
                 .andExpect(status().isNoContent());
         Mockito.verify(userService).deleteUser(10L);
     }

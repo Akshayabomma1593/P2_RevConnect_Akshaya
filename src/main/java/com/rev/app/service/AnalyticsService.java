@@ -5,6 +5,8 @@ import com.rev.app.entity.User;
 import com.rev.app.repository.PostRepository;
 import com.rev.app.repository.LikeRepository;
 import com.rev.app.repository.CommentRepository;
+import com.rev.app.repository.FollowRepository;
+import com.rev.app.repository.PostViewRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
@@ -23,20 +25,26 @@ public class AnalyticsService {
     private final LikeRepository likeRepository;
     private final CommentRepository commentRepository;
     private final FollowService followService;
+    private final FollowRepository followRepository;
     private final UserService userService;
+    private final PostViewRepository postViewRepository;
     private final com.rev.app.repository.ConnectionRepository connectionRepository;
 
     public AnalyticsService(PostRepository postRepository,
             LikeRepository likeRepository,
             CommentRepository commentRepository,
             FollowService followService,
+            FollowRepository followRepository,
             UserService userService,
+            PostViewRepository postViewRepository,
             com.rev.app.repository.ConnectionRepository connectionRepository) {
         this.postRepository = postRepository;
         this.likeRepository = likeRepository;
         this.commentRepository = commentRepository;
         this.followService = followService;
+        this.followRepository = followRepository;
         this.userService = userService;
+        this.postViewRepository = postViewRepository;
         this.connectionRepository = connectionRepository;
     }
 
@@ -56,6 +64,7 @@ public class AnalyticsService {
             analytics.put("likes", likeRepository.countByPostId(post.getId()));
             analytics.put("comments", commentRepository.countByPostId(post.getId()));
             analytics.put("shares", post.getShares() != null ? post.getShares().size() : 0);
+            analytics.put("reach", postViewRepository.countByPostId(post.getId()));
             result.add(analytics);
         }
         return result;
@@ -71,6 +80,15 @@ public class AnalyticsService {
         metrics.put("totalFollowers", followService.countFollowers(userId));
         metrics.put("totalFollowing", followService.countFollowing(userId));
         metrics.put("totalConnections", connectionRepository.countConnections(user));
+        metrics.put("totalReach", postViewRepository.countByAuthorId(userId));
         return metrics;
+    }
+
+    public Map<String, Object> getFollowerDemographics(Long userId) {
+        Map<String, Object> demographics = new HashMap<>();
+        demographics.put("personal", followRepository.countByFollowedIdAndFollowerRole(userId, User.UserRole.PERSONAL));
+        demographics.put("creator", followRepository.countByFollowedIdAndFollowerRole(userId, User.UserRole.CREATOR));
+        demographics.put("business", followRepository.countByFollowedIdAndFollowerRole(userId, User.UserRole.BUSINESS));
+        return demographics;
     }
 }

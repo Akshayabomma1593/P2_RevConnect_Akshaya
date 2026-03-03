@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+    th:replace="~{layout :: layout(layout_content=~{::section})}">
+
+<head>
+    <title>Business Page - RevConnect</title>
+</head>
+
+<body>
+    <section class="feed-dashboard">
+        <div class="container main-content" style="grid-template-columns: 1fr;">
+            <div style="max-width: 900px; margin: 0 auto; width: 100%;">
+                <div class="card">
+                    <h1 th:text="${page.pageName}">Business Page</h1>
+                    <p class="text-secondary mt-2" th:text="${page.about}"></p>
+
+                    <div class="mt-4 flex flex-direction-column gap-2 text-sm">
+                        <div th:if="${page.contactEmail != null and !page.contactEmail.isEmpty()}">
+                            Email: <span th:text="${page.contactEmail}"></span>
+                        </div>
+                        <div th:if="${page.contactPhone != null and !page.contactPhone.isEmpty()}">
+                            Phone: <span th:text="${page.contactPhone}"></span>
+                        </div>
+                        <div th:if="${page.address != null and !page.address.isEmpty()}">
+                            Address: <span th:text="${page.address}"></span>
+                        </div>
+                        <div th:if="${page.hours != null and !page.hours.isEmpty()}">
+                            Hours: <span th:text="${page.hours}"></span>
+                        </div>
+                        <div th:if="${page.website != null and !page.website.isEmpty()}">
+                            Website:
+                            <a th:href="${page.website}" target="_blank" class="icon-sky" th:text="${page.website}"></a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+</body>
+
+</html>

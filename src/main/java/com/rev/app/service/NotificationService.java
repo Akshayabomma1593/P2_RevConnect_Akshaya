@@ -9,8 +9,14 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
+import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 @Service
 @Transactional
@@ -20,6 +26,7 @@ public class NotificationService {
 
     private final NotificationRepository notificationRepository;
     private final NotificationPreferenceRepository preferenceRepository;
+    private final Map<Long, CopyOnWriteArrayList<SseEmitter>> emittersByUser = new ConcurrentHashMap<>();
 
     public NotificationService(NotificationRepository notificationRepository,
             NotificationPreferenceRepository preferenceRepository) {
@@ -50,7 +57,54 @@ public class NotificationService {
         Notification n = new Notification(recipient, actor, type, message);
         n.setReferenceId(referenceId);
         notificationRepository.save(n);
+        pushUnreadCount(recipient.getId());
         logger.debug("Notification created: {} -> {} type={}", actor.getUsername(), recipient.getUsername(), type);
+    }
+
+    public SseEmitter subscribe(Long userId) {
+        SseEmitter emitter = new SseEmitter(0L);
+        emittersByUser.computeIfAbsent(userId, id -> new CopyOnWriteArrayList<>()).add(emitter);
+
+        emitter.onCompletion(() -> removeEmitter(userId, emitter));
+        emitter.onTimeout(() -> removeEmitter(userId, emitter));
+        emitter.onError(ex -> removeEmitter(userId, emitter));
+
+        try {
+            emitter.send(SseEmitter.event()
+                    .data(Map.of("unreadCount", getUnreadCount(userId))));
+        } catch (IOException ex) {
+            removeEmitter(userId, emitter);
+        }
+
+        return emitter;
+    }
+
+    private void pushUnreadCount(Long userId) {
+        List<SseEmitter> emitters = emittersByUser.get(userId);
+        if (emitters == null || emitters.isEmpty()) {
+            return;
+        }
+        long unread = getUnreadCount(userId);
+        List<SseEmitter> stale = new ArrayList<>();
+        for (SseEmitter emitter : emitters) {
+            try {
+                emitter.send(SseEmitter.event()
+                        .data(Map.of("unreadCount", unread)));
+            } catch (IOException ex) {
+                stale.add(emitter);
+            }
+        }
+        stale.forEach(e -> removeEmitter(userId, e));
+    }
+
+    private void removeEmitter(Long userId, SseEmitter emitter) {
+        List<SseEmitter> emitters = emittersByUser.get(userId);
+        if (emitters != null) {
+            emitters.remove(emitter);
+            if (emitters.isEmpty()) {
+                emittersByUser.remove(userId);
+            }
+        }
     }
 
     public void notifyConnectionRequest(User receiver, User sender) {
@@ -99,6 +153,7 @@ public class NotificationService {
 
     public void markAllAsRead(Long userId) {
         notificationRepository.markAllAsRead(userId);
+        pushUnreadCount(userId);
     }
 
     public void deleteNotification(Long notificationId) {
@@ -114,5 +169,6 @@ public class NotificationService {
 
     public void clearAllNotifications(Long userId) {
         notificationRepository.deleteByRecipientId(userId);
+        pushUnreadCount(userId);
     }
 }

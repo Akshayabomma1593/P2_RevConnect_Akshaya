@@ -27,6 +27,12 @@ public class FollowService {
     }
 
     public Follow follow(User follower, User followed) {
+        if (follower.getId().equals(followed.getId())) {
+            throw new IllegalStateException("You cannot follow yourself.");
+        }
+        if (followed.getRole() == User.UserRole.PERSONAL) {
+            throw new IllegalStateException("You can follow creator or business accounts only.");
+        }
         if (followRepository.existsByFollowerIdAndFollowedId(follower.getId(), followed.getId())) {
             throw new IllegalStateException("Already following this user.");
         }

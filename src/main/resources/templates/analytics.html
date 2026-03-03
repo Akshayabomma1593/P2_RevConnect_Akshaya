@@ -34,6 +34,29 @@
                             th:text="${metrics['totalFollowing']}">0</div>
                         <div class="stat-label">Following</div>
                     </div>
+                    <div class="card text-center analytics-kpi analytics-kpi-connections">
+                        <div class="stat-value analytics-kpi-value analytics-kpi-accent"
+                            th:text="${metrics['totalReach']}">0</div>
+                        <div class="stat-label">Reach (Unique Viewers)</div>
+                    </div>
+                </div>
+
+                <div class="card mb-8">
+                    <h3 class="mb-4">Follower Demographics</h3>
+                    <div class="analytics-kpi-grid">
+                        <div class="card text-center">
+                            <div class="stat-value text-primary" th:text="${demographics['personal']}">0</div>
+                            <div class="stat-label">Personal</div>
+                        </div>
+                        <div class="card text-center">
+                            <div class="stat-value text-secondary" th:text="${demographics['creator']}">0</div>
+                            <div class="stat-label">Creator</div>
+                        </div>
+                        <div class="card text-center">
+                            <div class="stat-value text-info" th:text="${demographics['business']}">0</div>
+                            <div class="stat-label">Business</div>
+                        </div>
+                    </div>
                 </div>
 
                 <div class="card">
@@ -50,6 +73,7 @@
                                     <th class="widget-title analytics-center">Likes</th>
                                     <th class="widget-title analytics-center">Comments</th>
                                     <th class="widget-title analytics-center">Shares</th>
+                                    <th class="widget-title analytics-center">Reach</th>
                                     <th class="widget-title analytics-right">Date</th>
                                 </tr>
                             </thead>
@@ -64,6 +88,7 @@
                                     <td class="text-sm font-bold analytics-center"
                                         th:text="${pa['comments']}">0</td>
                                     <td class="text-sm font-bold analytics-center" th:text="${pa['shares']}">0</td>
+                                    <td class="text-sm font-bold analytics-center" th:text="${pa['reach']}">0</td>
                                     <td class="text-xs text-muted analytics-right"
                                         th:text="${#temporals.format(pa['createdAt'],'dd MMM yyyy')}"></td>
                                 </tr>
