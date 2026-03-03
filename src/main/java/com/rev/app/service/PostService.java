@@ -12,6 +12,7 @@ import com.rev.app.repository.PostViewRepository;
 import com.rev.app.repository.ProductRepository;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -184,6 +185,7 @@ public class PostService {
 
     // Scheduled: auto-publish posts when scheduledAt has passed
     @Scheduled(fixedDelay = 60000) // every 60 seconds
+    @ConditionalOnProperty(name = "app.scheduling.publish-enabled", havingValue = "true")
     public void publishScheduledPosts() {
         List<Post> due = postRepository.findPostsDueToPublish();
         for (Post post : due) {

@@ -120,12 +120,9 @@ public class NotificationController {
     @GetMapping(value = "/stream", produces = "text/event-stream")
     @ResponseBody
     public SseEmitter stream(@AuthenticationPrincipal UserDetails userDetails) {
-        if (userDetails == null) {
-            SseEmitter emitter = new SseEmitter(0L);
-            emitter.complete();
-            return emitter;
-        }
-        User currentUser = userService.findByUsername(userDetails.getUsername());
-        return notificationService.subscribe(currentUser.getId());
+        // Realtime stream disabled for submission stability to avoid long-lived DB-bound requests.
+        SseEmitter emitter = new SseEmitter(0L);
+        emitter.complete();
+        return emitter;
     }
 }
