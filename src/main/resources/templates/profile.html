@@ -7,23 +7,25 @@
 </head>
 
 <body>
-    <section>
+    <section class="feed-dashboard">
         <div class="container main-content">
-            <!-- Profile Column -->
             <div style="grid-column: 1 / 3;">
-                <div class="card card-flush mb-8">
+                <div class="mb-6">
+                    <h1 th:text="${profileUser.fullName ?: profileUser.username}">User Profile</h1>
+                </div>
+
+                <div class="card card-flush mb-8 profile-shell">
                     <div class="profile-cover"></div>
-                    <div class="profile-avatar-container">
-                        <div class="avatar avatar-lg" style="overflow: hidden;">
+                    <div class="profile-avatar-container profile-top-row">
+                        <div class="avatar avatar-lg profile-avatar-lg">
                             <img th:if="${profileUser.profilePicture != null && !profileUser.profilePicture.isEmpty()}"
-                                th:src="@{${profileUser.profilePicture}}"
-                                style="width: 100%; height: 100%; object-fit: cover;" alt="" />
+                                th:src="@{${profileUser.profilePicture}}" class="profile-avatar-img" alt="" />
                             <span th:if="${profileUser.profilePicture == null || profileUser.profilePicture.isEmpty()}"
                                 th:text="${profileUser.fullName != null ? profileUser.fullName.substring(0,1).toUpperCase() : profileUser.username.substring(0,1).toUpperCase()}"
-                                style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; background: var(--primary-gradient); color: white;"></span>
+                                class="profile-avatar-fallback"></span>
                         </div>
 
-                        <div class="flex gap-4 mb-4">
+                        <div class="flex gap-4 mb-4 profile-action-wrap">
                             <div th:if="${isOwnProfile}">
                                 <a th:href="@{/profile/edit}" class="btn btn-outline btn-sm">
                                     <i data-lucide="edit-3" style="width: 16px;"></i>
@@ -54,15 +56,16 @@
                                     <button type="submit" class="btn btn-outline btn-sm">Unfollow</button>
                                 </form>
 
-                                <a th:href="@{'/messages/' + ${profileUser.id}}" class="btn btn-outline btn-sm">
+                                <a th:href="@{'/messages/' + ${profileUser.id}}" class="btn btn-outline btn-sm"
+                                    title="Message">
                                     <i data-lucide="mail" style="width: 16px;"></i>
                                 </a>
                             </div>
                         </div>
                     </div>
 
-                    <div style="padding: 1.5rem 3rem 3rem;">
-                        <h1 class="mb-2" style="font-size: 2.25rem;">
+                    <div class="profile-body">
+                        <h1 class="mb-2 profile-name">
                             <span th:text="${profileUser.fullName ?: profileUser.username}"></span>
                             <span th:if="${profileUser.role.name() != 'PERSONAL'}" class="badge ml-2"
                                 th:text="${profileUser.role}"></span>
@@ -71,7 +74,7 @@
 
                         <p class="mb-8 post-content" th:if="${profileUser.bio}" th:text="${profileUser.bio}"></p>
 
-                        <div class="flex gap-6 text-sm text-muted mb-8">
+                        <div class="flex gap-6 text-sm text-muted mb-8 profile-meta-row">
                             <div th:if="${profileUser.location}" class="flex items-center gap-2">
                                 <i data-lucide="map-pin" class="icon-sky" style="width: 16px;"></i>
                                 <span th:text="${profileUser.location}"></span>
@@ -88,17 +91,16 @@
                             </div>
                         </div>
 
-                        <div class="flex gap-12 pt-8 justify-start px-2"
-                            style="border-top: 1px solid var(--border-light);">
+                        <div class="profile-stats-row">
                             <div class="stat-item-minimal">
                                 <div class="stat-value" th:text="${followerCount}">0</div>
                                 <div class="stat-label">Followers</div>
                             </div>
-                            <div class="stat-item-minimal" style="margin-left: 1rem;">
+                            <div class="stat-item-minimal">
                                 <div class="stat-value" th:text="${followingCount}">0</div>
                                 <div class="stat-label">Following</div>
                             </div>
-                            <div class="stat-item-minimal" style="margin-left: 1rem;">
+                            <div class="stat-item-minimal">
                                 <div class="stat-value" th:text="${connectionCount}">0</div>
                                 <div class="stat-label">Connections</div>
                             </div>
@@ -119,7 +121,8 @@
                         <p class="text-secondary">No activity yet.</p>
                     </div>
 
-                    <div th:each="post : ${posts}" class="card mb-6 post shadow-sm">
+                    <div th:each="post : ${posts}" class="card mb-6 post shadow-sm feed-post">
+                        <div class="feed-post-ribbon"></div>
                         <div class="post-header mb-4">
                             <div class="avatar" style="width: 32px; height: 32px; font-size: 0.8rem;"
                                 th:text="${post.author.username.substring(0,1).toUpperCase()}"></div>
@@ -144,10 +147,8 @@
                         <div class="post-content" th:text="${post.content}"></div>
 
                         <!-- Post Image Display -->
-                        <div th:if="${post.imageUrl != null}" class="post-image mb-4"
-                            style="border-radius: 12px; overflow: hidden; border: 1px solid var(--border-color);">
-                            <img th:src="@{${post.imageUrl}}" style="width: 100%; max-height: 400px; object-fit: cover;"
-                                alt="Post content" />
+                        <div th:if="${post.imageUrl != null}" class="post-image mb-4 profile-post-image">
+                            <img th:src="@{${post.imageUrl}}" class="profile-post-image-el" alt="Post content" />
                         </div>
 
                         <!-- Hashtags - clickable -->

@@ -6,32 +6,30 @@
 </head>
 
 <body>
-    <section>
+    <section class="feed-dashboard">
         <div class="container main-content" style="grid-template-columns: 1fr;">
-            <div style="max-width: 800px; margin: 0 auto; width: 100%;">
-                <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 2.5rem;">
+            <div class="search-shell">
+                <div class="mb-6 search-hashtag-head">
                     <a th:href="@{/feed}" class="btn btn-ghost btn-sm" style="padding: 0.5rem;">
                         <i data-lucide="arrow-left" style="width: 20px;"></i>
                     </a>
-                    <h1 style="font-size: 2rem;">Posts with <span style="color: var(--primary);"
-                            th:text="'#' + ${hashtag}">#hashtag</span></h1>
+                    <h1>Posts with <span class="search-hashtag-value" th:text="'#' + ${hashtag}">#hashtag</span></h1>
                 </div>
 
-                <div th:if="${posts == null or posts.empty}" class="card" style="text-align: center; padding: 5rem;">
+                <div th:if="${posts == null or posts.empty}" class="card text-center search-empty search-hash-empty">
                     <i data-lucide="hash"
                         style="width: 56px; height: 56px; margin: 0 auto 1.5rem; color: var(--text-muted);"></i>
                     <p class="text-secondary text-lg">No posts found with this hashtag yet.</p>
                 </div>
 
-                <div th:each="post : ${posts}" class="card mb-6" style="padding: 1.75rem;">
+                <div th:each="post : ${posts}" class="card mb-6 feed-post search-post-card">
+                    <div class="feed-post-ribbon"></div>
                     <div class="flex items-center gap-4 mb-5">
-                        <div class="avatar avatar-md" style="overflow: hidden;">
+                        <div class="avatar avatar-md search-user-avatar">
                             <img th:if="${post.author.profilePicture != null and !post.author.profilePicture.isEmpty()}"
-                                th:src="@{${post.author.profilePicture}}"
-                                style="width: 100%; height: 100%; object-fit: cover;" alt="Avatar" />
+                                th:src="@{${post.author.profilePicture}}" class="search-user-avatar-img" alt="Avatar" />
                             <span th:if="${post.author.profilePicture == null or post.author.profilePicture.isEmpty()}"
-                                th:text="${post.author.username.substring(0,1).toUpperCase()}"
-                                style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; background: var(--primary-gradient); color: white;"></span>
+                                th:text="${post.author.username.substring(0,1).toUpperCase()}" class="search-user-avatar-fallback"></span>
                         </div>
                         <div style="flex: 1;">
                             <a th:href="@{'/profile/' + ${post.author.username}}"
@@ -43,11 +41,10 @@
                         <div th:if="${post.postType.name() != 'TEXT'}" class="badge" th:text="${post.postType}"></div>
                     </div>
 
-                    <div style="font-size: 1.125rem; line-height: 1.6; margin-bottom: 1.5rem; white-space: pre-wrap;"
-                        th:text="${post.content}"></div>
+                    <div class="search-post-content" th:text="${post.content}"></div>
 
                     <!-- Hashtag tags — clickable -->
-                    <div style="display: flex; gap: 0.75rem; margin-bottom: 1.5rem; flex-wrap: wrap;"
+                    <div class="search-hash-tags"
                         th:if="${post.hashtags != null and !#strings.isEmpty(post.hashtags)}">
                         <a th:each="tag : ${#strings.arraySplit(post.hashtags,',')}"
                             th:href="@{/posts/search(hashtag=${#strings.trim(tag).replace('#','')})}"
@@ -55,7 +52,7 @@
                             th:text="${#strings.trim(tag).startsWith('#') ? #strings.trim(tag) : '#' + #strings.trim(tag)}"></a>
                     </div>
 
-                    <div style="display: flex; justify-content: flex-end;">
+                    <div class="search-post-footer">
                         <a th:href="@{'/posts/' + ${post.id}}" class="btn btn-outline btn-sm">View Full Post</a>
                     </div>
                 </div>

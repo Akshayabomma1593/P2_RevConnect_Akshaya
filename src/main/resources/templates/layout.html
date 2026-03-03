@@ -26,16 +26,19 @@
 </head>
 
 <body>
-  <nav class="navbar">
+  <nav class="navbar navbar-shell">
     <div class="container rc-nav-wrap">
-      <a th:href="@{/}" class="logo rc-logo">
+      <a th:href="@{/}" class="logo rc-logo rc-logo-chip">
+        <span class="rc-logo-mark">RC</span>
         <span class="logo-text">RevConnect</span>
       </a>
 
       <div class="nav-menu" th:if="${currentUser != null}">
-        <a th:href="@{/feed}" class="nav-link">Feed</a>
-        <a th:href="@{/messages}" class="nav-link">Talk</a>
-        <a th:href="@{/connections}" class="nav-link">Network</a>
+        <div class="rc-nav-pills">
+          <a th:href="@{/feed}" class="nav-link">Feed</a>
+          <a th:href="@{/messages}" class="nav-link">Talk</a>
+          <a th:href="@{/connections}" class="nav-link">Network</a>
+        </div>
         <button type="button" class="rc-theme-toggle" data-theme-toggle>Dark</button>
         <a th:href="@{/notifications}" class="nav-link" style="position: relative;">
           <i data-lucide="bell" style="width: 19px;"></i>
@@ -64,7 +67,7 @@
 
       <div class="nav-menu" th:if="${currentUser == null}">
         <button type="button" class="rc-theme-toggle" data-theme-toggle>Dark</button>
-        <a th:href="@{/login}" class="btn btn-ghost btn-sm">Login</a>
+        <a th:href="@{/login}" class="btn btn-outline btn-sm">Login</a>
         <a th:href="@{/register}" class="btn btn-primary btn-sm">Join RevConnect</a>
       </div>
     </div>
