@@ -38,14 +38,14 @@
                             </div>
                             <div th:if="${!isOwnProfile}" class="flex gap-2">
                                 <!-- Connect -->
-                                <form th:if="${!isConnected and !hasPendingRequest}"
+                                <form th:if="${currentUser.role.name() == 'PERSONAL' and profileUser.role.name() == 'PERSONAL' and !isConnected and !hasPendingRequest}"
                                     th:action="@{'/connections/request/' + ${profileUser.id}}" method="post">
                                     <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
                                     <button type="submit" class="btn btn-primary btn-sm">Connect</button>
                                 </form>
-                                <button th:if="${hasPendingRequest}" class="btn btn-outline btn-sm"
+                                <button th:if="${currentUser.role.name() == 'PERSONAL' and profileUser.role.name() == 'PERSONAL' and hasPendingRequest}" class="btn btn-outline btn-sm"
                                     disabled>Pending</button>
-                                <button th:if="${isConnected}" class="btn btn-outline btn-sm"
+                                <button th:if="${currentUser.role.name() == 'PERSONAL' and profileUser.role.name() == 'PERSONAL' and isConnected}" class="btn btn-outline btn-sm"
                                     disabled>Connected</button>
 
                                 <!-- Follow / Unfollow -->

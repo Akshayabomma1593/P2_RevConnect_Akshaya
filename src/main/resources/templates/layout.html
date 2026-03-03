@@ -37,9 +37,9 @@
         <div class="rc-nav-pills">
           <a th:href="@{/feed}" class="nav-link">Feed</a>
           <a th:href="@{/messages}" class="nav-link">Talk</a>
-          <a th:href="@{/connections}" class="nav-link">Network</a>
+          <a th:if="${currentUser.role.name() == 'PERSONAL'}" th:href="@{/connections}" class="nav-link">Network</a>
           <a th:if="${currentUser.role.name() != 'PERSONAL'}" th:href="@{/business/page}" class="nav-link">Page</a>
-          <a th:if="${currentUser.role.name() != 'PERSONAL'}" th:href="@{/products/manage}" class="nav-link">Products</a>
+          <a th:if="${currentUser.role.name() == 'BUSINESS'}" th:href="@{/products/manage}" class="nav-link">Products</a>
         </div>
         <button type="button" class="rc-theme-toggle" data-theme-toggle>Dark</button>
         <a th:href="@{/notifications}" class="nav-link" style="position: relative;">
@@ -85,25 +85,7 @@
   <script>
     lucide.createIcons();
   </script>
-  <script th:if="${currentUser != null}">
-    (function () {
-      var badge = document.getElementById("notificationBadge");
-      if (!badge || typeof EventSource === "undefined") {
-        return;
-      }
-      var source = new EventSource("/notifications/stream");
-      source.onmessage = function (event) {
-        try {
-          var data = JSON.parse(event.data);
-          var unread = Number(data.unreadCount || 0);
-          badge.textContent = unread;
-          badge.style.display = unread > 0 ? "inline-block" : "none";
-        } catch (e) {
-          // Ignore malformed events and keep existing badge state.
-        }
-      };
-    })();
-  </script>
+  <!-- Realtime notifications stream intentionally disabled for stability. -->
   <script th:src="@{/js/main.js}"></script>
 </body>
 
