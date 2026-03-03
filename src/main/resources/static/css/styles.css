@@ -1283,7 +1283,21 @@ h4 {
 }
 
 .feed-main-grid {
-  align-items: start;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  align-items: stretch;
+}
+
+.feed-dashboard .sidebar-left,
+.feed-dashboard .sidebar-right {
+  position: static;
+  top: auto;
+  width: 100%;
+}
+
+.feed-dashboard .feed-column {
+  width: 100%;
 }
 
 .feed-dashboard .card {
