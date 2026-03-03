@@ -71,8 +71,9 @@ public class WebSecurityConfig {
                                 .authenticationProvider(authenticationProvider())
                                 .authorizeHttpRequests(auth -> auth
                                                 // Public pages
-                                                .requestMatchers("/", "/login", "/register", "/css/**", "/js/**",
-                                                                "/images/**", "/uploads/**", "/h2-console/**", "/error")
+                                                .requestMatchers("/", "/login", "/register", "/forgot-password",
+                                                                "/reset-password", "/css/**", "/js/**",
+                                                                "/images/**", "/error", "/favicon.ico")
                                                 .permitAll()
                                                 // All authenticated users can access all other pages
                                                 .anyRequest().authenticated())
@@ -90,8 +91,6 @@ public class WebSecurityConfig {
                                                 .invalidateHttpSession(true)
                                                 .clearAuthentication(true)
                                                 .permitAll())
-                                .csrf(csrf -> csrf
-                                                .ignoringRequestMatchers("/h2-console/**"))
                                 .headers(headers -> headers
                                                 .frameOptions(frame -> frame.sameOrigin()) // for H2 console
                                 );

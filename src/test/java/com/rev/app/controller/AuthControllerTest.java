@@ -1,6 +1,7 @@
 package com.rev.app.controller;
 
 import com.rev.app.dto.RegisterDTO;
+import com.rev.app.service.PasswordResetService;
 import com.rev.app.service.UserService;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -17,7 +18,8 @@ class AuthControllerTest {
 
     @Test
     void home_authenticated_redirectsToFeed() {
-        AuthController controller = new AuthController(Mockito.mock(UserService.class));
+        AuthController controller = new AuthController(Mockito.mock(UserService.class),
+                Mockito.mock(PasswordResetService.class));
         UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(
                 "alice", "x", AuthorityUtils.createAuthorityList("ROLE_USER"));
 
@@ -29,7 +31,7 @@ class AuthControllerTest {
     @Test
     void register_success_redirectsToLogin() {
         UserService userService = Mockito.mock(UserService.class);
-        AuthController controller = new AuthController(userService);
+        AuthController controller = new AuthController(userService, Mockito.mock(PasswordResetService.class));
         RegisterDTO dto = new RegisterDTO();
         dto.setUsername("alice");
         BindingResult result = new BeanPropertyBindingResult(dto, "registerDTO");
