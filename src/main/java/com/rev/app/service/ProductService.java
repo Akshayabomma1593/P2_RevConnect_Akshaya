@@ -14,6 +14,7 @@ import java.util.List;
 @Service
 @Transactional
 public class ProductService {
+    private static final int MAX_LINK_LENGTH = 255;
 
     private final ProductRepository productRepository;
 
@@ -32,12 +33,22 @@ public class ProductService {
     }
 
     public Product create(User owner, String name, String description, BigDecimal price, String link) {
+        String normalizedName = name == null ? "" : name.trim();
+        if (normalizedName.isEmpty()) {
+            throw new IllegalArgumentException("Product name is required.");
+        }
+
+        String normalizedLink = link == null ? null : link.trim();
+        if (normalizedLink != null && normalizedLink.length() > MAX_LINK_LENGTH) {
+            throw new IllegalArgumentException("Link is too long. Please keep it under 255 characters.");
+        }
+
         Product p = new Product();
         p.setOwner(owner);
-        p.setName(name);
+        p.setName(normalizedName);
         p.setDescription(description);
         p.setPrice(price);
-        p.setLink(link);
+        p.setLink(normalizedLink == null || normalizedLink.isEmpty() ? null : normalizedLink);
         p.setActive(true);
         return productRepository.save(p);
     }

@@ -28,6 +28,7 @@ public class Product {
     @Column(precision = 12, scale = 2)
     private BigDecimal price;
 
+    @Column(length = 2048)
     private String link;
 
     @Column(name = "is_active")
