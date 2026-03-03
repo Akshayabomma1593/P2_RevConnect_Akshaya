@@ -3,6 +3,7 @@ package com.rev.app.service;
 import com.rev.app.entity.Notification;
 import com.rev.app.entity.NotificationPreference;
 import com.rev.app.entity.User;
+import com.rev.app.exception.AccessDeniedException;
 import com.rev.app.repository.NotificationPreferenceRepository;
 import com.rev.app.repository.NotificationRepository;
 import org.junit.jupiter.api.Test;
@@ -14,6 +15,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -63,5 +65,19 @@ class NotificationServiceTest {
         long count = notificationService.getUnreadCount(1L);
 
         assertEquals(3L, count);
+    }
+
+    @Test
+    void markAsRead_unauthorized_throws() {
+        when(notificationRepository.markAsRead(10L, 99L)).thenReturn(0);
+
+        assertThrows(AccessDeniedException.class, () -> notificationService.markAsRead(10L, 99L));
+    }
+
+    @Test
+    void deleteNotification_unauthorized_throws() {
+        when(notificationRepository.deleteByIdAndRecipientId(10L, 99L)).thenReturn(0);
+
+        assertThrows(AccessDeniedException.class, () -> notificationService.deleteNotification(10L, 99L));
     }
 }

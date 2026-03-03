@@ -12,6 +12,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.util.Optional;
@@ -74,5 +75,18 @@ class UserServiceTest {
         User result = userService.findByUsername("alice");
 
         assertEquals("alice", result.getUsername());
+    }
+
+    @Test
+    void uploadProfilePicture_invalidImageType_throws() {
+        User user = new User();
+        user.setId(1L);
+        when(userRepository.findById(1L)).thenReturn(Optional.of(user));
+
+        MockMultipartFile file = new MockMultipartFile("file", "avatar.svg", "image/svg+xml",
+                "<svg/>".getBytes());
+
+        assertThrows(IllegalArgumentException.class,
+                () -> userService.uploadProfilePicture(1L, file, "uploads/profile-pictures"));
     }
 }

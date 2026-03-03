@@ -11,6 +11,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.mock.web.MockMultipartFile;
 
 import java.util.Optional;
 
@@ -47,6 +48,24 @@ class PostServiceTest {
         Post result = postService.createPost(author, dto, null);
 
         assertEquals("hello", result.getContent());
+    }
+
+    @Test
+    void createPost_withInvalidImageType_throws() {
+        User author = new User();
+        author.setUsername("alice");
+        author.setId(1L);
+        PostDTO dto = new PostDTO();
+        dto.setContent("hello");
+        Post post = new Post();
+        post.setContent("hello");
+
+        MockMultipartFile file = new MockMultipartFile("image", "malicious.svg", "image/svg+xml",
+                "<svg></svg>".getBytes());
+
+        when(postMapper.toEntity(dto, author)).thenReturn(post);
+
+        assertThrows(IllegalArgumentException.class, () -> postService.createPost(author, dto, file));
     }
 
     @Test
